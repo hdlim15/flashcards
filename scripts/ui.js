@@ -69,7 +69,18 @@ export class UI {
             const cancelBtn = document.getElementById('modal-cancel-btn');
             const closeBtn = document.getElementById('modal-close-btn');
 
-            if (!overlay) return resolve(null);
+            if (!overlay || !titleEl || !messageEl) {
+                console.error('Modal elements not found');
+                return resolve(null);
+            }
+
+            // Clear any existing listeners by removing and re-adding
+            const newConfirmBtn = confirmBtn.cloneNode(true);
+            const newCancelBtn = cancelBtn.cloneNode(true);
+            const newCloseBtn = closeBtn.cloneNode(true);
+            confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+            cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+            closeBtn.parentNode.replaceChild(newCloseBtn, closeBtn);
 
             titleEl.textContent = title;
             messageEl.textContent = message;
@@ -78,7 +89,6 @@ export class UI {
                 inputEl.classList.remove('hidden');
                 inputEl.placeholder = inputPlaceholder;
                 inputEl.value = '';
-                inputEl.focus();
             } else {
                 inputEl.classList.add('hidden');
             }
@@ -98,31 +108,30 @@ export class UI {
                 resolve(showInput ? null : false);
             };
 
-            // Remove old listeners
-            const newConfirmBtn = confirmBtn.cloneNode(true);
-            const newCancelBtn = cancelBtn.cloneNode(true);
-            const newCloseBtn = closeBtn.cloneNode(true);
-            confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
-            cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
-            closeBtn.parentNode.replaceChild(newCloseBtn, closeBtn);
-
             // Add new listeners
             newConfirmBtn.addEventListener('click', handleConfirm);
             newCancelBtn.addEventListener('click', handleCancel);
             newCloseBtn.addEventListener('click', handleCancel);
-            overlay.addEventListener('click', (e) => {
+            
+            // Handle overlay click (but not modal content)
+            const handleOverlayClick = (e) => {
                 if (e.target === overlay) {
                     handleCancel();
                 }
-            });
+            };
+            overlay.addEventListener('click', handleOverlayClick);
 
             // Handle Enter key for input
             if (showInput) {
-                inputEl.addEventListener('keypress', (e) => {
+                const handleKeyPress = (e) => {
                     if (e.key === 'Enter') {
+                        e.preventDefault();
                         handleConfirm();
                     }
-                });
+                };
+                inputEl.addEventListener('keypress', handleKeyPress);
+                // Focus after a brief delay to ensure modal is visible
+                setTimeout(() => inputEl.focus(), 100);
             }
         });
     }

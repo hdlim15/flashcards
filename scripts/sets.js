@@ -10,6 +10,12 @@ export class Sets {
     }
 
     async createNewSet() {
+        // Ensure UI is available
+        if (!window.ui || !window.ui.prompt) {
+            console.error('UI not available');
+            return;
+        }
+        
         const name = await window.ui.prompt('Enter set name:', 'My Flashcard Set');
         if (!name || !name.trim()) {
             return;
