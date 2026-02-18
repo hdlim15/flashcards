@@ -426,16 +426,14 @@ body {
     transform: rotateY(180deg);
 }
 
-.flashcard.swipe-know {
-    outline: 4px solid #22c55e;
-    outline-offset: -4px;
-    border-radius: var(--border-radius);
+.flashcard.swipe-know .card-face {
+    border: 4px solid #22c55e !important;
+    box-shadow: 0 0 25px rgba(34, 197, 94, 0.7), var(--shadow-lg) !important;
 }
 
-.flashcard.swipe-dont-know {
-    outline: 4px solid #f97316;
-    outline-offset: -4px;
-    border-radius: var(--border-radius);
+.flashcard.swipe-dont-know .card-face {
+    border: 4px solid #f97316 !important;
+    box-shadow: 0 0 25px rgba(249, 115, 22, 0.7), var(--shadow-lg) !important;
 }
 
 .card-face {
