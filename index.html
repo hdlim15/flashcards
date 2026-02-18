@@ -33,12 +33,10 @@
             <header class="header">
                 <h1>My Flashcard Sets</h1>
                 <div class="header-actions">
-                    <button id="import-csv-btn" class="btn btn-secondary">Import CSV</button>
                     <button id="create-set-btn" class="btn btn-primary">+ New Set</button>
                     <button id="logout-btn" class="btn btn-text">Logout</button>
                 </div>
             </header>
-            <input type="file" id="csv-file-input" accept=".csv" style="display: none;">
             <main class="main-content">
                 <div id="sets-container" class="sets-container">
                     <!-- Sets will be rendered here -->
@@ -58,7 +56,10 @@
                     <input type="text" id="set-name-input" placeholder="Set Name" class="input">
                 </div>
                 <div class="cards-section">
-                    <h2>Cards</h2>
+                    <div class="cards-section-header">
+                        <h2>Cards</h2>
+                        <button id="import-csv-btn" class="btn btn-secondary">Import CSV</button>
+                    </div>
                     <div id="cards-container" class="cards-container">
                         <!-- Cards will be rendered here -->
                     </div>
@@ -66,6 +67,7 @@
                 </div>
             </main>
         </div>
+        <input type="file" id="csv-file-input" accept=".csv,text/csv" style="display: none;">
 
         <!-- Study Options Screen -->
         <div id="study-options-screen" class="screen hidden">

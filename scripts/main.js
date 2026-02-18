@@ -144,6 +144,10 @@ document.getElementById('create-set-btn')?.addEventListener('click', () => {
 });
 
 document.getElementById('import-csv-btn')?.addEventListener('click', () => {
+    if (!App.currentSetId) {
+        ui.showError('Open a set first, then import CSV.');
+        return;
+    }
     document.getElementById('csv-file-input').click();
 });
 
@@ -157,21 +161,21 @@ document.getElementById('csv-file-input')?.addEventListener('change', async (e) 
     try {
         ui.showMessage('Reading CSV file...');
         const cards = await csvImport.importFromFile(file);
-        
-        // Prompt for set name
-        const setName = await ui.prompt(
-            `Import ${cards.length} cards from CSV. Enter a name for this set:`,
-            file.name.replace('.csv', '') || 'Imported Set'
-        );
-
-        if (!setName || !setName.trim()) {
+        const targetSetId = App.currentSetId;
+        if (!targetSetId) {
+            ui.showError('No active set selected for import.');
             return;
         }
 
-        ui.showMessage('Creating flashcard set...');
-        await csvImport.createSetFromCSV(cards, setName.trim());
-        ui.showMessage(`Successfully imported ${cards.length} cards!`);
-        sets.renderSets();
+        const confirmed = await ui.confirm(`Import ${cards.length} cards into this set?`);
+        if (!confirmed) {
+            return;
+        }
+
+        ui.showMessage('Importing cards...');
+        const importedCount = await csvImport.appendCardsToSet(targetSetId, cards);
+        sets.renderCards(targetSetId);
+        ui.showMessage(`Successfully imported ${importedCount} cards!`);
     } catch (error) {
         console.error('CSV import error:', error);
         ui.showError('Failed to import CSV: ' + error.message);

@@ -15,8 +15,30 @@ export class Gists {
         }
 
         try {
-            // Get user's gists
-            const response = await fetch(`${this.apiBase}/gists`, {
+            // First try loading by previously known gist id (most reliable on refresh).
+            const cachedGistId = localStorage.getItem('flashcards_gist_id');
+            if (cachedGistId) {
+                const byIdResponse = await fetch(`${this.apiBase}/gists/${cachedGistId}`, {
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+
+                if (byIdResponse.ok) {
+                    const gist = await byIdResponse.json();
+                    if (gist.files && gist.files[this.gistFilename]) {
+                        this.gistId = gist.id;
+                        await this.loadDataFromGistFile(gist.files[this.gistFilename]);
+                        localStorage.setItem('flashcards_cache', JSON.stringify(this.data));
+                        localStorage.setItem('flashcards_gist_id', this.gistId);
+                        return this.data;
+                    }
+                }
+            }
+
+            // Fallback: get user's gists (up to 100 to reduce false "missing gist" results)
+            const response = await fetch(`${this.apiBase}/gists?per_page=100`, {
                 headers: {
                     'Authorization': `token ${token}`,
                     'Accept': 'application/vnd.github.v3+json'
@@ -39,18 +61,7 @@ export class Gists {
 
             if (flashcardGist) {
                 this.gistId = flashcardGist.id;
-                const fileContent = flashcardGist.files[this.gistFilename].content;
-                try {
-                    this.data = JSON.parse(fileContent);
-                    // Validate data structure
-                    if (!this.data.sets || !Array.isArray(this.data.sets)) {
-                        this.data = { sets: [] };
-                    }
-                } catch (parseError) {
-                    console.error('Failed to parse gist data:', parseError);
-                    // Create new gist if data is corrupted
-                    await this.createGist();
-                }
+                await this.loadDataFromGistFile(flashcardGist.files[this.gistFilename]);
             } else {
                 // Create new gist
                 await this.createGist();
@@ -82,6 +93,32 @@ export class Gists {
                 }
             }
             throw error;
+        }
+    }
+
+    async loadDataFromGistFile(gistFile) {
+        try {
+            // List responses can omit/truncate file content, so use raw_url when needed.
+            let fileContent = gistFile.content;
+            if (!fileContent && gistFile.raw_url) {
+                const rawResponse = await fetch(gistFile.raw_url, {
+                    headers: {
+                        'Accept': 'application/vnd.github.v3.raw'
+                    }
+                });
+                if (!rawResponse.ok) {
+                    throw new Error('Failed to read gist file content');
+                }
+                fileContent = await rawResponse.text();
+            }
+
+            this.data = JSON.parse(fileContent || '{"sets":[]}');
+            if (!this.data.sets || !Array.isArray(this.data.sets)) {
+                this.data = { sets: [] };
+            }
+        } catch (parseError) {
+            console.error('Failed to parse gist data:', parseError);
+            await this.createGist();
         }
     }
 
