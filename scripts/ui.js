@@ -10,6 +10,7 @@ export class UI {
             'study': 'study-screen'
         };
         this.modalResolve = null;
+        this.cleanupModalListeners = null;
     }
 
     showScreen(screenName) {
@@ -82,8 +83,10 @@ export class UI {
             cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
             closeBtn.parentNode.replaceChild(newCloseBtn, closeBtn);
 
-            titleEl.textContent = title;
-            messageEl.textContent = message;
+            titleEl.textContent = title || 'Confirm';
+            messageEl.textContent = (typeof message === 'string' && message.trim())
+                ? message
+                : 'Please confirm this action.';
             
             if (showInput) {
                 inputEl.classList.remove('hidden');
@@ -112,7 +115,7 @@ export class UI {
             newConfirmBtn.addEventListener('click', handleConfirm);
             newCancelBtn.addEventListener('click', handleCancel);
             newCloseBtn.addEventListener('click', handleCancel);
-            
+
             // Handle overlay click (but not modal content)
             const handleOverlayClick = (e) => {
                 if (e.target === overlay) {
@@ -133,6 +136,10 @@ export class UI {
                 // Focus after a brief delay to ensure modal is visible
                 setTimeout(() => inputEl.focus(), 100);
             }
+
+            this.cleanupModalListeners = () => {
+                overlay.removeEventListener('click', handleOverlayClick);
+            };
         });
     }
 
@@ -140,6 +147,10 @@ export class UI {
         const overlay = document.getElementById('modal-overlay');
         if (overlay) {
             overlay.classList.add('hidden');
+        }
+        if (this.cleanupModalListeners) {
+            this.cleanupModalListeners();
+            this.cleanupModalListeners = null;
         }
         this.modalResolve = null;
     }
