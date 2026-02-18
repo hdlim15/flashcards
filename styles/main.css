@@ -425,6 +425,18 @@ body {
     transform: rotateY(180deg);
 }
 
+.flashcard.swipe-know {
+    outline: 4px solid #22c55e;
+    outline-offset: -4px;
+    border-radius: var(--border-radius);
+}
+
+.flashcard.swipe-dont-know {
+    outline: 4px solid #f97316;
+    outline-offset: -4px;
+    border-radius: var(--border-radius);
+}
+
 .card-face {
     position: absolute;
     width: 100%;
@@ -462,6 +474,30 @@ body {
     gap: var(--spacing-md);
     align-items: center;
     margin-bottom: var(--spacing-md);
+}
+
+.return-btn {
+    margin-top: var(--spacing-md);
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--surface-color);
+    border: 2px solid var(--border-color);
+    color: var(--text-primary);
+    transition: var(--transition);
+}
+
+.return-btn:hover {
+    background-color: var(--bg-color);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+.return-btn:active {
+    transform: scale(0.95);
 }
 
 .study-hints {
@@ -546,5 +582,22 @@ body {
         flex-direction: column;
     }
 
+    /* Hide Flip button on mobile */
+    #flip-card-btn {
+        display: none;
+    }
+
+    /* Show return button on mobile */
+    .return-btn {
+        display: flex;
+    }
+
+}
+
+/* Return button visibility on desktop - controlled by JavaScript based on track progress toggle */
+@media (min-width: 768px) {
+    .return-btn {
+        display: none; /* Default hidden, shown via JS when track progress is on */
+    }
 }
 

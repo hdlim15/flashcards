@@ -232,6 +232,10 @@ document.getElementById('prev-card-btn')?.addEventListener('click', () => {
     study.previousCard();
 });
 
+document.getElementById('return-card-btn')?.addEventListener('click', () => {
+    study.previousCard();
+});
+
 document.getElementById('next-card-btn')?.addEventListener('click', () => {
     study.nextCard();
 });
@@ -255,6 +259,15 @@ document.getElementById('side-toggle-btn')?.addEventListener('click', () => {
     }
     if (App.currentSetId) {
         study.startStudy(App.currentSetId, App.studySettings.order, App.studySettings.startSide);
+    }
+});
+
+document.getElementById('track-progress-toggle-btn')?.addEventListener('click', () => {
+    const newState = !controls.trackProgress;
+    controls.setTrackProgress(newState);
+    const btn = document.getElementById('track-progress-toggle-btn');
+    if (btn) {
+        btn.textContent = `Track Progress: ${newState ? 'On' : 'Off'}`;
     }
 });
 

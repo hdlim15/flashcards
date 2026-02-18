@@ -152,13 +152,6 @@ export class Sets {
         
         if (!container) return;
 
-        const gistLink = document.getElementById('gist-link');
-        const gistUrl = window.gists.getGistUrl();
-        if (gistLink && gistUrl) {
-            gistLink.href = gistUrl;
-            gistLink.classList.remove('hidden');
-        }
-
         if (sets.length === 0) {
             container.innerHTML = `
                 <div class="empty-state">
@@ -175,7 +168,6 @@ export class Sets {
                 <div class="card-count">${set.cards.length} card${set.cards.length !== 1 ? 's' : ''}</div>
                 <div class="set-card-actions">
                     <button class="btn btn-primary set-edit-btn" data-set-id="${this.escapeHtml(set.id)}">Edit</button>
-                    <a class="btn btn-text set-gist-btn" href="${this.escapeHtml(window.gists.getGistUrl() || '#')}" target="_blank" rel="noopener noreferrer">Gist</a>
                 </div>
             </div>
         `).join('');
@@ -197,13 +189,6 @@ export class Sets {
                 }
             });
         });
-
-        container.querySelectorAll('.set-gist-btn').forEach(link => {
-            link.addEventListener('click', (e) => {
-                e.stopPropagation();
-            });
-        });
-
     }
 
     openSet(setId) {
@@ -217,12 +202,6 @@ export class Sets {
         }
 
         document.getElementById('set-name-input').value = set.name;
-        const setGistLink = document.getElementById('set-gist-link');
-        const gistUrl = window.gists.getGistUrl();
-        if (setGistLink && gistUrl) {
-            setGistLink.href = gistUrl;
-            setGistLink.classList.remove('hidden');
-        }
         this.renderCards(setId);
         window.ui.showScreen('set-edit');
     }

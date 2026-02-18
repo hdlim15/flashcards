@@ -7,6 +7,25 @@ export class Controls {
         this.touchEndX = 0;
         this.touchEndY = 0;
         this.minSwipeDistance = 50;
+        this.isSwiping = false;
+        this.swipeState = null; // 'know', 'dont-know', or null
+        this.touchStarted = false;
+        this.trackProgress = false; // Track progress toggle state
+    }
+
+    setTrackProgress(enabled) {
+        this.trackProgress = enabled;
+        this.updateReturnButtonVisibility();
+    }
+
+    updateReturnButtonVisibility() {
+        const returnBtn = document.getElementById('return-card-btn');
+        if (returnBtn) {
+            // On mobile, always show. On desktop, only show when track progress is on
+            if (window.innerWidth >= 768) {
+                returnBtn.style.display = this.trackProgress ? 'flex' : 'none';
+            }
+        }
     }
 
     attach() {
@@ -14,21 +33,41 @@ export class Controls {
         document.addEventListener('keydown', this.handleKeyDown);
         
         // Touch controls
-        const cardContainer = document.getElementById('card-container');
-        if (cardContainer) {
-            cardContainer.addEventListener('touchstart', this.handleTouchStart);
-            cardContainer.addEventListener('touchend', this.handleTouchEnd);
+        const flashcard = document.getElementById('flashcard');
+        if (flashcard) {
+            flashcard.addEventListener('touchstart', this.handleTouchStart, { passive: true });
+            flashcard.addEventListener('touchmove', this.handleTouchMove, { passive: true });
+            flashcard.addEventListener('touchend', this.handleTouchEnd, { passive: true });
+            flashcard.addEventListener('touchcancel', this.handleTouchCancel, { passive: true });
+            // Tap to flip
+            flashcard.addEventListener('click', this.handleTap);
         }
+        
+        // Handle window resize to update return button visibility
+        window.addEventListener('resize', this.handleResize);
+        this.updateReturnButtonVisibility();
     }
 
     detach() {
         document.removeEventListener('keydown', this.handleKeyDown);
         
-        const cardContainer = document.getElementById('card-container');
-        if (cardContainer) {
-            cardContainer.removeEventListener('touchstart', this.handleTouchStart);
-            cardContainer.removeEventListener('touchend', this.handleTouchEnd);
+        const flashcard = document.getElementById('flashcard');
+        if (flashcard) {
+            flashcard.removeEventListener('touchstart', this.handleTouchStart);
+            flashcard.removeEventListener('touchmove', this.handleTouchMove);
+            flashcard.removeEventListener('touchend', this.handleTouchEnd);
+            flashcard.removeEventListener('touchcancel', this.handleTouchCancel);
+            flashcard.removeEventListener('click', this.handleTap);
         }
+        
+        window.removeEventListener('resize', this.handleResize);
+        
+        // Clear any swipe state
+        this.clearSwipeState();
+    }
+
+    handleResize = () => {
+        this.updateReturnButtonVisibility();
     }
 
     handleKeyDown = (e) => {
@@ -51,12 +90,40 @@ export class Controls {
                 break;
             case 'ArrowLeft':
                 e.preventDefault();
-                this.study.previousCard();
+                if (this.trackProgress) {
+                    // Mark as "don't know" (orange outline)
+                    this.showKnowState('dont-know');
+                } else {
+                    // Go to previous card
+                    this.study.previousCard();
+                }
                 break;
             case 'ArrowRight':
                 e.preventDefault();
-                this.study.nextCard();
+                if (this.trackProgress) {
+                    // Mark as "know" (green outline)
+                    this.showKnowState('know');
+                } else {
+                    // Go to next card
+                    this.study.nextCard();
+                }
                 break;
+        }
+    }
+
+    showKnowState(state) {
+        const flashcard = document.getElementById('flashcard');
+        if (flashcard) {
+            flashcard.classList.remove('swipe-know', 'swipe-dont-know');
+            if (state === 'know') {
+                flashcard.classList.add('swipe-know');
+            } else if (state === 'dont-know') {
+                flashcard.classList.add('swipe-dont-know');
+            }
+            // Clear after a delay
+            setTimeout(() => {
+                this.clearSwipeState();
+            }, 300);
         }
     }
 
@@ -64,6 +131,45 @@ export class Controls {
         const touch = e.touches[0];
         this.touchStartX = touch.clientX;
         this.touchStartY = touch.clientY;
+        this.isSwiping = false;
+        this.swipeState = null;
+        this.touchStarted = true;
+    }
+
+    handleTouchMove = (e) => {
+        if (!e.touches[0]) return;
+        
+        const touch = e.touches[0];
+        const deltaX = touch.clientX - this.touchStartX;
+        const deltaY = touch.clientY - this.touchStartY;
+        const absDeltaX = Math.abs(deltaX);
+        const absDeltaY = Math.abs(deltaY);
+
+        // Only consider horizontal swipes
+        if (absDeltaX > absDeltaY && absDeltaX > 10) {
+            this.isSwiping = true;
+            const flashcard = document.getElementById('flashcard');
+            if (flashcard) {
+                // Remove previous state
+                flashcard.classList.remove('swipe-know', 'swipe-dont-know');
+                
+                if (this.trackProgress) {
+                    // Track progress mode: swipe right = know, swipe left = don't know
+                    if (deltaX > 0) {
+                        // Swipe right - "know" (green)
+                        this.swipeState = 'know';
+                        flashcard.classList.add('swipe-know');
+                    } else {
+                        // Swipe left - "don't know" (orange)
+                        this.swipeState = 'dont-know';
+                        flashcard.classList.add('swipe-dont-know');
+                    }
+                } else {
+                    // Normal mode: swipe left = next, swipe right = prev (no visual feedback)
+                    // Just mark as swiping, no visual state
+                }
+            }
+        }
     }
 
     handleTouchEnd = (e) => {
@@ -71,35 +177,68 @@ export class Controls {
         this.touchEndX = touch.clientX;
         this.touchEndY = touch.clientY;
         
-        this.handleSwipe();
-    }
-
-    handleSwipe() {
         const deltaX = this.touchEndX - this.touchStartX;
         const deltaY = this.touchEndY - this.touchStartY;
         const absDeltaX = Math.abs(deltaX);
         const absDeltaY = Math.abs(deltaY);
-
-        // Determine if it's a horizontal or vertical swipe
-        if (absDeltaX > absDeltaY && absDeltaX > this.minSwipeDistance) {
-            // Horizontal swipe
-            if (deltaX > 0) {
-                // Swipe right - next card
-                this.study.nextCard();
+        
+        if (this.isSwiping && absDeltaX > this.minSwipeDistance) {
+            // Horizontal swipe detected
+            if (this.trackProgress) {
+                // Track progress mode: show visual feedback, clear after delay
+                setTimeout(() => {
+                    this.clearSwipeState();
+                }, 300);
             } else {
-                // Swipe left - previous card
-                this.study.previousCard();
+                // Normal mode: navigate cards
+                this.clearSwipeState();
+                if (deltaX > 0) {
+                    // Swipe right - previous card
+                    this.study.previousCard();
+                } else {
+                    // Swipe left - next card
+                    this.study.nextCard();
+                }
             }
-        } else if (absDeltaY > absDeltaX && absDeltaY > this.minSwipeDistance) {
-            // Vertical swipe
-            if (deltaY > 0) {
-                // Swipe down - flip card
-                this.study.flipCard();
-            } else {
-                // Swipe up - flip card
+        } else {
+            // Not a swipe or insufficient distance
+            this.clearSwipeState();
+            
+            // If movement was very small, treat as tap
+            if (absDeltaX < 10 && absDeltaY < 10 && !this.isSwiping) {
+                // Small tap - flip the card
+                // Prevent click event from firing
+                e.preventDefault();
                 this.study.flipCard();
             }
         }
+        
+        this.isSwiping = false;
+        // Reset after a short delay to allow click prevention
+        setTimeout(() => {
+            this.touchStarted = false;
+        }, 300);
+    }
+
+    handleTouchCancel = () => {
+        this.clearSwipeState();
+        this.isSwiping = false;
+    }
+
+    handleTap = (e) => {
+        // Only handle tap on desktop (mouse click), not touch events
+        // Touch events are handled in handleTouchEnd
+        if (!this.touchStarted && !('ontouchstart' in window)) {
+            this.study.flipCard();
+        }
+    }
+
+    clearSwipeState() {
+        const flashcard = document.getElementById('flashcard');
+        if (flashcard) {
+            flashcard.classList.remove('swipe-know', 'swipe-dont-know');
+        }
+        this.swipeState = null;
     }
 }
 
