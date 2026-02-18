@@ -160,6 +160,8 @@ export class Gists {
             throw new Error('Not authenticated or no gist ID');
         }
 
+        this.data = this.sanitizeData(this.data);
+
         // Validate data before saving
         if (!this.data || !this.data.sets || !Array.isArray(this.data.sets)) {
             throw new Error('Invalid data structure');
@@ -207,8 +209,32 @@ export class Gists {
     }
 
     updateData(newData) {
-        this.data = newData;
+        this.data = this.sanitizeData(newData);
         return this.saveData();
+    }
+
+    sanitizeData(data) {
+        const safeData = data && Array.isArray(data.sets) ? data : { sets: [] };
+        return {
+            sets: safeData.sets.map((set) => ({
+                ...set,
+                name: (set.name || '').trim(),
+                cards: (Array.isArray(set.cards) ? set.cards : []).filter((card) => {
+                    const front = (card.front || '').trim();
+                    const back = (card.back || '').trim();
+                    return front.length > 0 && back.length > 0;
+                }).map((card) => ({
+                    ...card,
+                    front: (card.front || '').trim(),
+                    back: (card.back || '').trim()
+                }))
+            }))
+        };
+    }
+
+    getGistUrl() {
+        if (!this.gistId) return null;
+        return `https://gist.github.com/${this.gistId}`;
     }
 }
 

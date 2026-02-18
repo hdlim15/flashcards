@@ -33,16 +33,12 @@
             <header class="header">
                 <h1>My Flashcard Sets</h1>
                 <div class="header-actions">
+                    <a id="gist-link" class="btn btn-text hidden" href="#" target="_blank" rel="noopener noreferrer">Open Gist</a>
                     <button id="create-set-btn" class="btn btn-primary">+ New Set</button>
                     <button id="logout-btn" class="btn btn-text">Logout</button>
                 </div>
             </header>
             <main class="main-content">
-                <div id="create-set-inline" class="create-set-inline hidden">
-                    <input type="text" id="new-set-name-input" class="input" placeholder="Enter set title">
-                    <button id="create-set-submit-btn" class="btn btn-primary">Create</button>
-                    <button id="create-set-cancel-btn" class="btn btn-secondary">Cancel</button>
-                </div>
                 <div id="sets-container" class="sets-container">
                     <!-- Sets will be rendered here -->
                 </div>
@@ -63,7 +59,10 @@
                 <div class="cards-section">
                     <div class="cards-section-header">
                         <h2>Cards</h2>
-                        <button id="import-csv-btn" class="btn btn-secondary">Import CSV</button>
+                        <div class="cards-section-actions">
+                            <a id="set-gist-link" class="btn btn-text hidden" href="#" target="_blank" rel="noopener noreferrer">Open Gist</a>
+                            <button id="import-csv-btn" class="btn btn-secondary">Import CSV</button>
+                        </div>
                     </div>
                     <div id="cards-container" class="cards-container">
                         <!-- Cards will be rendered here -->
@@ -106,6 +105,10 @@
             <header class="header">
                 <button id="exit-study-btn" class="btn btn-text">Exit</button>
                 <div id="study-progress" class="study-progress">1 / 10</div>
+                <div class="study-header-toggles">
+                    <button id="order-toggle-btn" class="btn btn-secondary">Order: Sequential</button>
+                    <button id="side-toggle-btn" class="btn btn-secondary">Start: Front</button>
+                </div>
             </header>
             <main class="main-content study-main">
                 <div id="card-container" class="card-container">

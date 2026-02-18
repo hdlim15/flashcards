@@ -11,7 +11,11 @@ import { CSVImport } from './csv-import.js';
 const App = {
     currentScreen: 'loading',
     currentSetId: null,
-    studyMode: null
+    studyMode: null,
+    studySettings: {
+        order: 'sequential',
+        startSide: 'front'
+    }
 };
 
 // Initialize modules
@@ -137,44 +141,7 @@ document.getElementById('logout-btn')?.addEventListener('click', () => {
 });
 
 document.getElementById('create-set-btn')?.addEventListener('click', () => {
-    const inline = document.getElementById('create-set-inline');
-    const input = document.getElementById('new-set-name-input');
-    if (!inline || !input) return;
-    inline.classList.remove('hidden');
-    input.value = '';
-    input.focus();
-});
-
-document.getElementById('create-set-cancel-btn')?.addEventListener('click', () => {
-    const inline = document.getElementById('create-set-inline');
-    const input = document.getElementById('new-set-name-input');
-    if (!inline || !input) return;
-    inline.classList.add('hidden');
-    input.value = '';
-});
-
-document.getElementById('create-set-submit-btn')?.addEventListener('click', async () => {
-    const inline = document.getElementById('create-set-inline');
-    const input = document.getElementById('new-set-name-input');
-    if (!inline || !input) return;
-
-    const name = input.value.trim();
-    if (!name) {
-        ui.showError('Please enter a set title.');
-        input.focus();
-        return;
-    }
-
-    await sets.createNewSet(name);
-    inline.classList.add('hidden');
-    input.value = '';
-});
-
-document.getElementById('new-set-name-input')?.addEventListener('keydown', async (e) => {
-    if (e.key !== 'Enter') return;
-    e.preventDefault();
-    const submitBtn = document.getElementById('create-set-submit-btn');
-    submitBtn?.click();
+    sets.createNewSet();
 });
 
 document.getElementById('import-csv-btn')?.addEventListener('click', () => {
@@ -241,6 +208,8 @@ document.getElementById('back-from-study-options-btn')?.addEventListener('click'
 document.getElementById('start-study-btn')?.addEventListener('click', () => {
     const order = document.querySelector('input[name="order"]:checked').value;
     const startSide = document.querySelector('input[name="start-side"]:checked').value;
+    App.studySettings.order = order;
+    App.studySettings.startSide = startSide;
     if (App.currentSetId) {
         study.startStudy(App.currentSetId, order, startSide);
         ui.showScreen('study');
@@ -267,6 +236,28 @@ document.getElementById('next-card-btn')?.addEventListener('click', () => {
     study.nextCard();
 });
 
+document.getElementById('order-toggle-btn')?.addEventListener('click', () => {
+    App.studySettings.order = App.studySettings.order === 'sequential' ? 'shuffled' : 'sequential';
+    const btn = document.getElementById('order-toggle-btn');
+    if (btn) {
+        btn.textContent = `Order: ${App.studySettings.order === 'sequential' ? 'Sequential' : 'Shuffled'}`;
+    }
+    if (App.currentSetId) {
+        study.startStudy(App.currentSetId, App.studySettings.order, App.studySettings.startSide);
+    }
+});
+
+document.getElementById('side-toggle-btn')?.addEventListener('click', () => {
+    App.studySettings.startSide = App.studySettings.startSide === 'front' ? 'back' : 'front';
+    const btn = document.getElementById('side-toggle-btn');
+    if (btn) {
+        btn.textContent = `Start: ${App.studySettings.startSide === 'front' ? 'Front' : 'Back'}`;
+    }
+    if (App.currentSetId) {
+        study.startStudy(App.currentSetId, App.studySettings.order, App.studySettings.startSide);
+    }
+});
+
 // Expose app state globally for modules
 window.App = App;
 window.auth = auth;
@@ -275,6 +266,7 @@ window.sets = sets;
 window.study = study;
 window.ui = ui;
 window.csvImport = csvImport;
+window.controls = controls;
 
 // Start app
 init();

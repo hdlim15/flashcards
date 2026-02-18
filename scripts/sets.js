@@ -9,20 +9,13 @@ export class Sets {
         return data.sets || [];
     }
 
-    async createNewSet(name) {
-        if (!name || !name.trim()) {
-            return;
-        }
-
-        if (name.trim().length > 100) {
-            window.ui.showError('Set name must be 100 characters or less');
-            return;
-        }
+    async createNewSet() {
+        const defaultName = 'New Set';
 
         const data = this.gists.getData();
         const newSet = {
             id: Date.now().toString(),
-            name: name.trim(),
+            name: defaultName,
             cards: []
         };
 
@@ -33,6 +26,7 @@ export class Sets {
             await this.gists.updateData(data);
             this.renderSets();
             window.ui.showMessage('Set created successfully');
+            this.openSet(newSet.id);
         } catch (error) {
             console.error('Failed to create set:', error);
             if (error.message.includes('network') || error.message.includes('fetch')) {
@@ -45,6 +39,13 @@ export class Sets {
 
     async updateSetName(setId, newName) {
         if (!newName || !newName.trim()) {
+            const data = this.gists.getData();
+            const set = data.sets.find(s => s.id === setId);
+            if (set) {
+                const input = document.getElementById('set-name-input');
+                if (input) input.value = set.name;
+            }
+            window.ui.showError('Set title cannot be blank');
             return;
         }
 
@@ -88,17 +89,12 @@ export class Sets {
         const newCard = {
             id: Date.now().toString(),
             front: '',
-            back: ''
+            back: '',
+            _draft: true
         };
 
         set.cards.push(newCard);
-        
-        try {
-            await this.gists.updateData(data);
-            this.renderCards(setId);
-        } catch (error) {
-            window.ui.showError('Failed to add card: ' + error.message);
-        }
+        this.renderCards(setId);
     }
 
     async updateCard(setId, cardId, front, back) {
@@ -115,6 +111,12 @@ export class Sets {
             }
             card.front = front;
             card.back = back;
+            card._draft = !(front.trim().length > 0 && back.trim().length > 0);
+
+            // Only persist when both sides are non-empty
+            if (card._draft) {
+                return;
+            }
             try {
                 await this.gists.updateData(data);
             } catch (error) {
@@ -128,8 +130,14 @@ export class Sets {
         const set = data.sets.find(s => s.id === setId);
         if (!set) return;
 
+        const targetCard = set.cards.find(c => c.id === cardId);
         set.cards = set.cards.filter(c => c.id !== cardId);
-        
+
+        if (targetCard && targetCard._draft) {
+            this.renderCards(setId);
+            return;
+        }
+
         try {
             await this.gists.updateData(data);
             this.renderCards(setId);
@@ -143,6 +151,13 @@ export class Sets {
         const container = document.getElementById('sets-container');
         
         if (!container) return;
+
+        const gistLink = document.getElementById('gist-link');
+        const gistUrl = window.gists.getGistUrl();
+        if (gistLink && gistUrl) {
+            gistLink.href = gistUrl;
+            gistLink.classList.remove('hidden');
+        }
 
         if (sets.length === 0) {
             container.innerHTML = `
@@ -160,14 +175,22 @@ export class Sets {
                 <div class="card-count">${set.cards.length} card${set.cards.length !== 1 ? 's' : ''}</div>
                 <div class="set-card-actions">
                     <button class="btn btn-primary set-edit-btn" data-set-id="${this.escapeHtml(set.id)}">Edit</button>
-                    <button class="btn btn-secondary set-study-btn" data-set-id="${this.escapeHtml(set.id)}">Study</button>
+                    <a class="btn btn-text set-gist-btn" href="${this.escapeHtml(window.gists.getGistUrl() || '#')}" target="_blank" rel="noopener noreferrer">Gist</a>
                 </div>
             </div>
         `).join('');
 
-        // Use event delegation instead of inline onclick
+        // Click anywhere on set card to study
+        container.querySelectorAll('.set-card').forEach(card => {
+            card.addEventListener('click', (e) => {
+                const setId = e.currentTarget.dataset.setId;
+                if (setId) this.startStudyOptions(setId);
+            });
+        });
+
         container.querySelectorAll('.set-edit-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
+                e.stopPropagation();
                 const setId = e.target.dataset.setId;
                 if (setId) {
                     this.openSet(setId);
@@ -175,14 +198,12 @@ export class Sets {
             });
         });
 
-        container.querySelectorAll('.set-study-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const setId = e.target.dataset.setId;
-                if (setId) {
-                    this.startStudyOptions(setId);
-                }
+        container.querySelectorAll('.set-gist-btn').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.stopPropagation();
             });
         });
+
     }
 
     openSet(setId) {
@@ -196,6 +217,12 @@ export class Sets {
         }
 
         document.getElementById('set-name-input').value = set.name;
+        const setGistLink = document.getElementById('set-gist-link');
+        const gistUrl = window.gists.getGistUrl();
+        if (setGistLink && gistUrl) {
+            setGistLink.href = gistUrl;
+            setGistLink.classList.remove('hidden');
+        }
         this.renderCards(setId);
         window.ui.showScreen('set-edit');
     }
@@ -272,7 +299,11 @@ export class Sets {
         }
 
         window.App.currentSetId = setId;
-        window.ui.showScreen('study-options');
+        const order = window.App.studySettings?.order || 'sequential';
+        const startSide = window.App.studySettings?.startSide || 'front';
+        window.study.startStudy(setId, order, startSide);
+        window.ui.showScreen('study');
+        window.controls?.attach?.();
     }
 
     escapeHtml(text) {

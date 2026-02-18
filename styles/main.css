@@ -137,17 +137,6 @@ body {
     gap: var(--spacing-sm);
 }
 
-.create-set-inline {
-    display: flex;
-    gap: var(--spacing-sm);
-    align-items: center;
-    margin-bottom: var(--spacing-md);
-}
-
-.create-set-inline .input {
-    flex: 1;
-}
-
 /* Main Content */
 .main-content {
     flex: 1;
@@ -311,6 +300,12 @@ body {
     margin: 0;
 }
 
+.cards-section-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
 .cards-container {
     display: flex;
     flex-direction: column;
@@ -333,9 +328,13 @@ body {
 
 .card-inputs {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     gap: var(--spacing-md);
     margin-bottom: var(--spacing-md);
+}
+
+.card-input-group {
+    flex: 1;
 }
 
 .card-input-group label {
@@ -397,6 +396,11 @@ body {
 .study-progress {
     font-weight: 600;
     color: var(--text-secondary);
+}
+
+.study-header-toggles {
+    display: flex;
+    gap: var(--spacing-sm);
 }
 
 .card-container {
@@ -521,9 +525,9 @@ body {
         justify-content: space-between;
     }
 
-    .create-set-inline {
-        flex-direction: column;
-        align-items: stretch;
+    .study-header-toggles {
+        width: 100%;
+        justify-content: space-between;
     }
 
     .main-content {
@@ -536,6 +540,10 @@ body {
 
     .card-content {
         font-size: 1.25rem;
+    }
+
+    .card-inputs {
+        flex-direction: column;
     }
 
 }
