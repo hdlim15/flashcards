@@ -80,7 +80,7 @@ export class Study {
         
         // Set flip state instantly (no animation) - preserve flip state in transform
         this.isFlipped = this.startSide === 'back';
-        const flipTransform = this.isFlipped ? 'rotateY(180deg) ' : '';
+        const flipTransform = this.isFlipped ? 'rotateX(180deg) ' : '';
         
         if (this.isFlipped) {
             flashcard.classList.add('flipped');
@@ -92,8 +92,8 @@ export class Study {
         this.currentIndex = (this.currentIndex + 1) % this.cards.length;
         this.updateCardContent();
         
-        // Slide animation: start new card from left, slide to center
-        flashcard.style.transform = `${flipTransform}translateX(-100%)`;
+        // Slide animation: start new card from right, slide to center
+        flashcard.style.transform = `${flipTransform}translateX(100%)`;
         
         // Slide in new card
         requestAnimationFrame(() => {
@@ -118,7 +118,7 @@ export class Study {
         
         // Set flip state instantly (no animation) - preserve flip state in transform
         this.isFlipped = this.startSide === 'back';
-        const flipTransform = this.isFlipped ? 'rotateY(180deg) ' : '';
+        const flipTransform = this.isFlipped ? 'rotateX(180deg) ' : '';
         
         if (this.isFlipped) {
             flashcard.classList.add('flipped');
@@ -130,8 +130,8 @@ export class Study {
         this.currentIndex = (this.currentIndex - 1 + this.cards.length) % this.cards.length;
         this.updateCardContent();
         
-        // Slide animation: start new card from right, slide to center
-        flashcard.style.transform = `${flipTransform}translateX(100%)`;
+        // Slide animation: start new card from left, slide to center
+        flashcard.style.transform = `${flipTransform}translateX(-100%)`;
         
         // Slide in new card
         requestAnimationFrame(() => {

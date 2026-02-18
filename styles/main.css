@@ -437,7 +437,7 @@ body {
 }
 
 .flashcard.flipped {
-    transform: rotateY(180deg);
+    transform: rotateX(180deg);
 }
 
 .flashcard.swipe-know .card-face {
@@ -466,7 +466,7 @@ body {
 }
 
 .card-back {
-    transform: rotateY(180deg);
+    transform: rotateX(180deg);
 }
 
 .card-content {

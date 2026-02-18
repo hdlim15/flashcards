@@ -155,7 +155,7 @@ export class Controls {
                 // Move the card with the swipe, preserving flip state
                 const translateX = deltaX;
                 const isFlipped = flashcard.classList.contains('flipped');
-                const flipTransform = isFlipped ? 'rotateY(180deg) ' : '';
+                const flipTransform = isFlipped ? 'rotateX(180deg) ' : '';
                 flashcard.style.transform = `${flipTransform}translateX(${translateX}px)`;
                 flashcard.style.transition = 'none'; // Disable transition during drag
                 
@@ -200,7 +200,7 @@ export class Controls {
         // Reset card position with smooth transition, preserving flip state
         if (flashcard) {
             const isFlipped = flashcard.classList.contains('flipped');
-            const flipTransform = isFlipped ? 'rotateY(180deg)' : '';
+            const flipTransform = isFlipped ? 'rotateX(180deg)' : '';
             flashcard.style.transition = 'transform 0.3s ease-out';
             flashcard.style.transform = flipTransform;
         }
@@ -253,7 +253,7 @@ export class Controls {
         const flashcard = document.getElementById('flashcard');
         if (flashcard) {
             const isFlipped = flashcard.classList.contains('flipped');
-            const flipTransform = isFlipped ? 'rotateY(180deg)' : '';
+            const flipTransform = isFlipped ? 'rotateX(180deg)' : '';
             flashcard.style.transition = 'transform 0.3s ease-out';
             flashcard.style.transform = flipTransform;
         }
@@ -274,9 +274,9 @@ export class Controls {
         if (flashcard) {
             flashcard.classList.remove('swipe-know', 'swipe-dont-know');
             // Reset transform if not already reset, preserving flip state
-            if (flashcard.style.transform && !flashcard.style.transform.includes('rotateY')) {
+            if (flashcard.style.transform && !flashcard.style.transform.includes('rotateX')) {
                 const isFlipped = flashcard.classList.contains('flipped');
-                const flipTransform = isFlipped ? 'rotateY(180deg)' : '';
+                const flipTransform = isFlipped ? 'rotateX(180deg)' : '';
                 flashcard.style.transition = 'transform 0.3s ease-out';
                 flashcard.style.transform = flipTransform;
             }
