@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flashcards App</title>
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Loading Screen -->
+        <div id="loading-screen" class="screen">
+            <div class="spinner"></div>
+            <p>Loading...</p>
+        </div>
+
+        <!-- Login Screen -->
+        <div id="login-screen" class="screen hidden">
+            <div class="login-container">
+                <h1>Flashcards App</h1>
+                <p>Sign in with GitHub to sync your flashcards across devices</p>
+                <button id="login-btn" class="btn btn-primary">Sign in with GitHub</button>
+                <p class="help-text">Or enter a Personal Access Token:</p>
+                <input type="password" id="token-input" placeholder="GitHub Personal Access Token" class="input">
+                <button id="token-submit-btn" class="btn btn-secondary">Use Token</button>
+            </div>
+        </div>
+
+        <!-- Dashboard Screen -->
+        <div id="dashboard-screen" class="screen hidden">
+            <header class="header">
+                <h1>My Flashcard Sets</h1>
+                <button id="logout-btn" class="btn btn-text">Logout</button>
+            </header>
+            <main class="main-content">
+                <div id="sets-container" class="sets-container">
+                    <!-- Sets will be rendered here -->
+                </div>
+                <button id="create-set-btn" class="btn btn-primary btn-fab">+ New Set</button>
+            </main>
+        </div>
+
+        <!-- Set Edit Screen -->
+        <div id="set-edit-screen" class="screen hidden">
+            <header class="header">
+                <button id="back-to-dashboard-btn" class="btn btn-text">← Back</button>
+                <h1 id="set-edit-title">Edit Set</h1>
+                <button id="delete-set-btn" class="btn btn-text btn-danger">Delete</button>
+            </header>
+            <main class="main-content">
+                <div class="set-name-section">
+                    <input type="text" id="set-name-input" placeholder="Set Name" class="input">
+                </div>
+                <div class="cards-section">
+                    <h2>Cards</h2>
+                    <div id="cards-container" class="cards-container">
+                        <!-- Cards will be rendered here -->
+                    </div>
+                    <button id="add-card-btn" class="btn btn-secondary">+ Add Card</button>
+                </div>
+            </main>
+        </div>
+
+        <!-- Study Options Screen -->
+        <div id="study-options-screen" class="screen hidden">
+            <header class="header">
+                <button id="back-from-study-options-btn" class="btn btn-text">← Back</button>
+                <h1>Study Options</h1>
+            </header>
+            <main class="main-content">
+                <div class="study-options">
+                    <div class="option-group">
+                        <label>Order:</label>
+                        <div class="radio-group">
+                            <label><input type="radio" name="order" value="sequential" checked> Sequential</label>
+                            <label><input type="radio" name="order" value="shuffled"> Shuffled</label>
+                        </div>
+                    </div>
+                    <div class="option-group">
+                        <label>Start with:</label>
+                        <div class="radio-group">
+                            <label><input type="radio" name="start-side" value="front" checked> Front</label>
+                            <label><input type="radio" name="start-side" value="back"> Back</label>
+                        </div>
+                    </div>
+                    <button id="start-study-btn" class="btn btn-primary">Start Studying</button>
+                </div>
+            </main>
+        </div>
+
+        <!-- Study Screen -->
+        <div id="study-screen" class="screen hidden">
+            <header class="header">
+                <button id="exit-study-btn" class="btn btn-text">Exit</button>
+                <div id="study-progress" class="study-progress">1 / 10</div>
+            </header>
+            <main class="main-content study-main">
+                <div id="card-container" class="card-container">
+                    <div id="flashcard" class="flashcard">
+                        <div class="card-face card-front">
+                            <div class="card-content" id="card-front-content"></div>
+                        </div>
+                        <div class="card-face card-back">
+                            <div class="card-content" id="card-back-content"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="study-controls">
+                    <button id="prev-card-btn" class="btn btn-icon">←</button>
+                    <button id="flip-card-btn" class="btn btn-primary">Flip</button>
+                    <button id="next-card-btn" class="btn btn-icon">→</button>
+                </div>
+                <div class="study-hints">
+                    <p>↑↓ to flip • ←→ to navigate</p>
+                </div>
+            </main>
+        </div>
+
+        <!-- Error/Message Toast -->
+        <div id="toast" class="toast hidden"></div>
+    </div>
+
+    <script type="module" src="scripts/main.js"></script>
+</body>
+</html>
+
