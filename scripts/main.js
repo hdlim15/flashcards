@@ -126,21 +126,55 @@ document.getElementById('token-input')?.addEventListener('keypress', (e) => {
     }
 });
 
-document.getElementById('logout-btn')?.addEventListener('click', async () => {
-    const confirmed = await ui.confirm('Are you sure you want to logout? Your token will be cleared from this device.');
-    if (confirmed) {
-        auth.clearToken();
-        // Also clear cached data
-        localStorage.removeItem('flashcards_cache');
-        localStorage.removeItem('flashcards_gist_id');
-        ui.showScreen('login');
-        document.getElementById('token-input').value = '';
-        ui.showMessage('Logged out successfully');
-    }
+document.getElementById('logout-btn')?.addEventListener('click', () => {
+    auth.clearToken();
+    // Also clear cached data
+    localStorage.removeItem('flashcards_cache');
+    localStorage.removeItem('flashcards_gist_id');
+    ui.showScreen('login');
+    document.getElementById('token-input').value = '';
+    ui.showMessage('Logged out successfully');
 });
 
 document.getElementById('create-set-btn')?.addEventListener('click', () => {
-    sets.createNewSet();
+    const inline = document.getElementById('create-set-inline');
+    const input = document.getElementById('new-set-name-input');
+    if (!inline || !input) return;
+    inline.classList.remove('hidden');
+    input.value = '';
+    input.focus();
+});
+
+document.getElementById('create-set-cancel-btn')?.addEventListener('click', () => {
+    const inline = document.getElementById('create-set-inline');
+    const input = document.getElementById('new-set-name-input');
+    if (!inline || !input) return;
+    inline.classList.add('hidden');
+    input.value = '';
+});
+
+document.getElementById('create-set-submit-btn')?.addEventListener('click', async () => {
+    const inline = document.getElementById('create-set-inline');
+    const input = document.getElementById('new-set-name-input');
+    if (!inline || !input) return;
+
+    const name = input.value.trim();
+    if (!name) {
+        ui.showError('Please enter a set title.');
+        input.focus();
+        return;
+    }
+
+    await sets.createNewSet(name);
+    inline.classList.add('hidden');
+    input.value = '';
+});
+
+document.getElementById('new-set-name-input')?.addEventListener('keydown', async (e) => {
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+    const submitBtn = document.getElementById('create-set-submit-btn');
+    submitBtn?.click();
 });
 
 document.getElementById('import-csv-btn')?.addEventListener('click', () => {
@@ -164,11 +198,6 @@ document.getElementById('csv-file-input')?.addEventListener('change', async (e) 
         const targetSetId = App.currentSetId;
         if (!targetSetId) {
             ui.showError('No active set selected for import.');
-            return;
-        }
-
-        const confirmed = await ui.confirm(`Import ${cards.length} cards into this set?`);
-        if (!confirmed) {
             return;
         }
 

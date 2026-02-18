@@ -9,14 +9,7 @@ export class Sets {
         return data.sets || [];
     }
 
-    async createNewSet() {
-        // Ensure UI is available
-        if (!window.ui || !window.ui.prompt) {
-            console.error('UI not available');
-            return;
-        }
-        
-        const name = await window.ui.prompt('Enter set name:', 'My Flashcard Set');
+    async createNewSet(name) {
         if (!name || !name.trim()) {
             return;
         }
@@ -68,11 +61,6 @@ export class Sets {
     }
 
     async deleteSet(setId) {
-        const confirmed = await window.ui.confirm('Are you sure you want to delete this set? This cannot be undone.');
-        if (!confirmed) {
-            return;
-        }
-
         const data = this.gists.getData();
         data.sets = data.sets.filter(s => s.id !== setId);
         

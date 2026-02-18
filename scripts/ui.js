@@ -9,8 +9,6 @@ export class UI {
             'study-options': 'study-options-screen',
             'study': 'study-screen'
         };
-        this.modalResolve = null;
-        this.cleanupModalListeners = null;
     }
 
     showScreen(screenName) {
@@ -57,112 +55,6 @@ export class UI {
 
     hideLoading() {
         // Loading screen is hidden when another screen is shown
-    }
-
-    // Modal functions
-    showModal(title, message, showInput = false, inputPlaceholder = '') {
-        return new Promise((resolve) => {
-            const overlay = document.getElementById('modal-overlay');
-            const titleEl = document.getElementById('modal-title');
-            const messageEl = document.getElementById('modal-message');
-            const inputEl = document.getElementById('modal-input');
-            const confirmBtn = document.getElementById('modal-confirm-btn');
-            const cancelBtn = document.getElementById('modal-cancel-btn');
-            const closeBtn = document.getElementById('modal-close-btn');
-
-            if (!overlay || !titleEl || !messageEl) {
-                console.error('Modal elements not found');
-                return resolve(null);
-            }
-
-            // Clear any existing listeners by removing and re-adding
-            const newConfirmBtn = confirmBtn.cloneNode(true);
-            const newCancelBtn = cancelBtn.cloneNode(true);
-            const newCloseBtn = closeBtn.cloneNode(true);
-            confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
-            cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
-            closeBtn.parentNode.replaceChild(newCloseBtn, closeBtn);
-
-            titleEl.textContent = title || 'Confirm';
-            messageEl.textContent = (typeof message === 'string' && message.trim())
-                ? message
-                : 'Please confirm this action.';
-            
-            if (showInput) {
-                inputEl.classList.remove('hidden');
-                inputEl.placeholder = inputPlaceholder;
-                inputEl.value = '';
-            } else {
-                inputEl.classList.add('hidden');
-            }
-
-            this.modalResolve = resolve;
-            overlay.classList.remove('hidden');
-
-            // Set up event listeners
-            const handleConfirm = () => {
-                const result = showInput ? inputEl.value.trim() : true;
-                this.hideModal();
-                resolve(result);
-            };
-
-            const handleCancel = () => {
-                this.hideModal();
-                resolve(showInput ? null : false);
-            };
-
-            // Add new listeners
-            newConfirmBtn.addEventListener('click', handleConfirm);
-            newCancelBtn.addEventListener('click', handleCancel);
-            newCloseBtn.addEventListener('click', handleCancel);
-
-            // Handle overlay click (but not modal content)
-            const handleOverlayClick = (e) => {
-                if (e.target === overlay) {
-                    handleCancel();
-                }
-            };
-            overlay.addEventListener('click', handleOverlayClick);
-
-            // Handle Enter key for input
-            if (showInput) {
-                const handleKeyPress = (e) => {
-                    if (e.key === 'Enter') {
-                        e.preventDefault();
-                        handleConfirm();
-                    }
-                };
-                inputEl.addEventListener('keypress', handleKeyPress);
-                // Focus after a brief delay to ensure modal is visible
-                setTimeout(() => inputEl.focus(), 100);
-            }
-
-            this.cleanupModalListeners = () => {
-                overlay.removeEventListener('click', handleOverlayClick);
-            };
-        });
-    }
-
-    hideModal() {
-        const overlay = document.getElementById('modal-overlay');
-        if (overlay) {
-            overlay.classList.add('hidden');
-        }
-        if (this.cleanupModalListeners) {
-            this.cleanupModalListeners();
-            this.cleanupModalListeners = null;
-        }
-        this.modalResolve = null;
-    }
-
-    async confirm(message) {
-        const result = await this.showModal('Confirm', message, false);
-        return result === true;
-    }
-
-    async prompt(message, placeholder = '') {
-        const result = await this.showModal('Input', message, true, placeholder);
-        return result;
     }
 }
 

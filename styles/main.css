@@ -137,6 +137,17 @@ body {
     gap: var(--spacing-sm);
 }
 
+.create-set-inline {
+    display: flex;
+    gap: var(--spacing-sm);
+    align-items: center;
+    margin-bottom: var(--spacing-md);
+}
+
+.create-set-inline .input {
+    flex: 1;
+}
+
 /* Main Content */
 .main-content {
     flex: 1;
@@ -199,90 +210,6 @@ body {
 .btn-icon {
     font-size: 1.5rem;
     padding: var(--spacing-sm);
-}
-
-/* Modal */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 10000;
-    padding: var(--spacing-lg);
-}
-
-.modal-overlay.hidden {
-    display: none !important;
-}
-
-.modal {
-    background-color: var(--surface-color);
-    border-radius: var(--border-radius);
-    box-shadow: var(--shadow-lg);
-    width: 100%;
-    max-width: 500px;
-    max-height: 90vh;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-}
-
-.modal-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: var(--spacing-lg);
-    border-bottom: 1px solid var(--border-color);
-}
-
-.modal-header h2 {
-    margin: 0;
-    font-size: 1.5rem;
-}
-
-.modal-close {
-    background: none;
-    border: none;
-    font-size: 2rem;
-    color: var(--text-secondary);
-    cursor: pointer;
-    padding: 0;
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    line-height: 1;
-}
-
-.modal-close:hover {
-    color: var(--text-primary);
-}
-
-.modal-body {
-    padding: var(--spacing-lg);
-}
-
-.modal-body p {
-    margin: 0 0 var(--spacing-md) 0;
-    color: var(--text-primary);
-}
-
-.modal-body .input {
-    margin-top: var(--spacing-md);
-}
-
-.modal-footer {
-    display: flex;
-    gap: var(--spacing-sm);
-    justify-content: flex-end;
-    padding: var(--spacing-lg);
-    border-top: 1px solid var(--border-color);
 }
 
 /* Input */
@@ -594,6 +521,11 @@ body {
         justify-content: space-between;
     }
 
+    .create-set-inline {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
     .main-content {
         padding: var(--spacing-md);
     }
@@ -604,11 +536,6 @@ body {
 
     .card-content {
         font-size: 1.25rem;
-    }
-
-    .modal {
-        max-width: 100%;
-        margin: var(--spacing-md);
     }
 
 }
