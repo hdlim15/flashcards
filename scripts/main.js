@@ -25,6 +25,34 @@ const controls = new Controls(study);
 async function init() {
     ui.showScreen('loading');
     
+    // Check for OAuth errors from previous attempt
+    const oauthError = sessionStorage.getItem('oauth_error');
+    if (oauthError) {
+        sessionStorage.removeItem('oauth_error');
+        ui.showScreen('login');
+        ui.showError('OAuth authentication failed: ' + oauthError);
+        return;
+    }
+    
+    // Handle OAuth callback if present
+    const urlParams = new URLSearchParams(window.location.search);
+    const hadOAuthCallback = urlParams.get('code') !== null;
+    
+    if (hadOAuthCallback) {
+        const success = await auth.handleOAuthCallback();
+        if (!success) {
+            ui.showScreen('login');
+            const error = sessionStorage.getItem('oauth_error');
+            if (error) {
+                sessionStorage.removeItem('oauth_error');
+                ui.showError('OAuth authentication failed: ' + error);
+            } else {
+                ui.showError('Failed to complete OAuth authentication.');
+            }
+            return;
+        }
+    }
+    
     // Check if user is authenticated
     const token = auth.getToken();
     if (token) {
@@ -32,6 +60,10 @@ async function init() {
             await gists.loadData();
             ui.showScreen('dashboard');
             sets.renderSets();
+            
+            if (hadOAuthCallback) {
+                ui.showMessage('Successfully signed in with GitHub!');
+            }
         } catch (error) {
             console.error('Failed to load data:', error);
             auth.clearToken();
@@ -93,9 +125,15 @@ document.getElementById('token-input')?.addEventListener('keypress', (e) => {
 });
 
 document.getElementById('logout-btn')?.addEventListener('click', () => {
-    auth.clearToken();
-    ui.showScreen('login');
-    document.getElementById('token-input').value = '';
+    if (confirm('Are you sure you want to logout? Your token will be cleared from this device.')) {
+        auth.clearToken();
+        // Also clear cached data
+        localStorage.removeItem('flashcards_cache');
+        localStorage.removeItem('flashcards_gist_id');
+        ui.showScreen('login');
+        document.getElementById('token-input').value = '';
+        ui.showMessage('Logged out successfully');
+    }
 });
 
 document.getElementById('create-set-btn')?.addEventListener('click', () => {

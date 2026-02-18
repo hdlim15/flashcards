@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src https://api.github.com; img-src 'self' data: https:;">
     <title>Flashcards App</title>
     <link rel="stylesheet" href="styles/main.css">
 </head>
@@ -19,10 +20,11 @@
             <div class="login-container">
                 <h1>Flashcards App</h1>
                 <p>Sign in with GitHub to sync your flashcards across devices</p>
-                <button id="login-btn" class="btn btn-primary">Sign in with GitHub</button>
+                <button id="login-btn" class="btn btn-primary">Sign in with GitHub (OAuth)</button>
                 <p class="help-text">Or enter a Personal Access Token:</p>
                 <input type="password" id="token-input" placeholder="GitHub Personal Access Token" class="input">
                 <button id="token-submit-btn" class="btn btn-secondary">Use Token</button>
+                <p class="security-note">🔒 OAuth is more secure. Token is stored locally and only used to access GitHub Gists.</p>
             </div>
         </div>
 

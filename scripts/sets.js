@@ -160,15 +160,34 @@ export class Sets {
         }
 
         container.innerHTML = sets.map(set => `
-            <div class="set-card">
+            <div class="set-card" data-set-id="${this.escapeHtml(set.id)}">
                 <h3>${this.escapeHtml(set.name)}</h3>
                 <div class="card-count">${set.cards.length} card${set.cards.length !== 1 ? 's' : ''}</div>
                 <div class="set-card-actions">
-                    <button class="btn btn-primary" onclick="window.sets.openSet('${set.id}')">Edit</button>
-                    <button class="btn btn-secondary" onclick="window.sets.startStudyOptions('${set.id}')">Study</button>
+                    <button class="btn btn-primary set-edit-btn" data-set-id="${this.escapeHtml(set.id)}">Edit</button>
+                    <button class="btn btn-secondary set-study-btn" data-set-id="${this.escapeHtml(set.id)}">Study</button>
                 </div>
             </div>
         `).join('');
+
+        // Use event delegation instead of inline onclick
+        container.querySelectorAll('.set-edit-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const setId = e.target.dataset.setId;
+                if (setId) {
+                    this.openSet(setId);
+                }
+            });
+        });
+
+        container.querySelectorAll('.set-study-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const setId = e.target.dataset.setId;
+                if (setId) {
+                    this.startStudyOptions(setId);
+                }
+            });
+        });
     }
 
     openSet(setId) {
@@ -205,22 +224,33 @@ export class Sets {
         }
 
         container.innerHTML = set.cards.map(card => `
-            <div class="card-item" data-card-id="${card.id}">
+            <div class="card-item" data-card-id="${this.escapeHtml(card.id)}">
                 <div class="card-inputs">
                     <div class="card-input-group">
                         <label>Front</label>
-                        <textarea class="input card-front-input" rows="2" data-card-id="${card.id}">${this.escapeHtml(card.front)}</textarea>
+                        <textarea class="input card-front-input" rows="2" data-card-id="${this.escapeHtml(card.id)}">${this.escapeHtml(card.front)}</textarea>
                     </div>
                     <div class="card-input-group">
                         <label>Back</label>
-                        <textarea class="input card-back-input" rows="2" data-card-id="${card.id}">${this.escapeHtml(card.back)}</textarea>
+                        <textarea class="input card-back-input" rows="2" data-card-id="${this.escapeHtml(card.id)}">${this.escapeHtml(card.back)}</textarea>
                     </div>
                 </div>
                 <div class="card-actions">
-                    <button class="btn btn-danger btn-text" onclick="window.sets.deleteCard('${setId}', '${card.id}')">Delete</button>
+                    <button class="btn btn-danger btn-text card-delete-btn" data-set-id="${this.escapeHtml(setId)}" data-card-id="${this.escapeHtml(card.id)}">Delete</button>
                 </div>
             </div>
         `).join('');
+
+        // Use event delegation instead of inline onclick
+        container.querySelectorAll('.card-delete-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const setId = e.target.dataset.setId;
+                const cardId = e.target.dataset.cardId;
+                if (setId && cardId) {
+                    this.deleteCard(setId, cardId);
+                }
+            });
+        });
 
         // Add event listeners for card updates
         container.querySelectorAll('.card-front-input, .card-back-input').forEach(input => {
@@ -251,8 +281,9 @@ export class Sets {
     }
 
     escapeHtml(text) {
+        if (text == null) return '';
         const div = document.createElement('div');
-        div.textContent = text;
+        div.textContent = String(text);
         return div.innerHTML;
     }
 }

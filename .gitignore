@@ -16,3 +16,7 @@ Thumbs.db
 .env
 .env.local
 
+# Serverless function dependencies (if you add them)
+node_modules/
+.vercel/
+.netlify/
