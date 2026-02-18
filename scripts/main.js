@@ -334,6 +334,18 @@ document.getElementById('track-progress-toggle-btn')?.addEventListener('click', 
     }
 });
 
+document.getElementById('edit-card-btn')?.addEventListener('click', () => {
+    study.startEditMode();
+});
+
+document.getElementById('card-edit-save-btn')?.addEventListener('click', () => {
+    study.saveCardEdit();
+});
+
+document.getElementById('card-edit-cancel-btn')?.addEventListener('click', () => {
+    study.cancelEditMode();
+});
+
 // Expose app state globally for modules
 window.App = App;
 window.auth = auth;

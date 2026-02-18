@@ -36,8 +36,11 @@ export class Study {
         this.startSide = startSide;
         this.isFlipped = startSide === 'back';
         
-        // Copy valid cards array
-        this.cards = [...validCards];
+        // Store reference to original set for updates
+        this.originalSet = set;
+        
+        // Copy valid cards array (keep references to original cards for updates)
+        this.cards = validCards;
         
         // Shuffle if needed
         if (order === 'shuffled') {
@@ -72,6 +75,9 @@ export class Study {
     }
 
     nextCard() {
+        // Cancel edit mode if active
+        this.cancelEditMode();
+        
         const flashcard = document.getElementById('flashcard');
         if (!flashcard) return;
         
@@ -110,6 +116,9 @@ export class Study {
     }
 
     previousCard() {
+        // Cancel edit mode if active
+        this.cancelEditMode();
+        
         const flashcard = document.getElementById('flashcard');
         if (!flashcard) return;
         
@@ -207,6 +216,78 @@ export class Study {
     getCurrentCard() {
         if (this.cards.length === 0) return null;
         return this.cards[this.currentIndex];
+    }
+
+    getCurrentCardId() {
+        const card = this.getCurrentCard();
+        return card ? card.id : null;
+    }
+
+    startEditMode() {
+        const card = this.getCurrentCard();
+        if (!card) return;
+
+        const flashcard = document.getElementById('flashcard');
+        const editMode = document.getElementById('card-edit-mode');
+        
+        if (flashcard && editMode) {
+            flashcard.classList.add('hidden');
+            editMode.classList.remove('hidden');
+            
+            document.getElementById('card-edit-front').value = card.front || '';
+            document.getElementById('card-edit-back').value = card.back || '';
+        }
+    }
+
+    cancelEditMode() {
+        const flashcard = document.getElementById('flashcard');
+        const editMode = document.getElementById('card-edit-mode');
+        
+        if (flashcard && editMode) {
+            flashcard.classList.remove('hidden');
+            editMode.classList.add('hidden');
+        }
+    }
+
+    async saveCardEdit() {
+        const card = this.getCurrentCard();
+        if (!card || !this.currentSetId) return;
+
+        const frontInput = document.getElementById('card-edit-front');
+        const backInput = document.getElementById('card-edit-back');
+        
+        if (!frontInput || !backInput) return;
+
+        const front = frontInput.value.trim();
+        const back = backInput.value.trim();
+
+        // Validate
+        if (front.length > 1000 || back.length > 1000) {
+            window.ui.showError('Card content must be 1000 characters or less');
+            return;
+        }
+
+        if (!front || !back) {
+            window.ui.showError('Both front and back must have content');
+            return;
+        }
+
+        try {
+            // Update via sets module
+            await window.sets.updateCard(this.currentSetId, card.id, front, back);
+            
+            // Update local card data
+            card.front = front;
+            card.back = back;
+            
+            // Update display
+            this.updateCardContent();
+            this.cancelEditMode();
+            
+            window.ui.showMessage('Card updated successfully');
+        } catch (error) {
+            window.ui.showError('Failed to update card: ' + error.message);
+        }
     }
 }
 
