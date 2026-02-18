@@ -64,6 +64,16 @@ async function init() {
     if (token) {
         try {
             await gists.loadData();
+            
+            // Load settings from gist
+            const settings = gists.getSettings();
+            App.studySettings.order = settings.order || 'sequential';
+            App.studySettings.startSide = settings.startSide || 'front';
+            controls.setTrackProgress(settings.trackProgress || false);
+            
+            // Update UI to reflect loaded settings
+            updateSettingsUI();
+            
             ui.showScreen('dashboard');
             sets.renderSets();
             
@@ -86,6 +96,26 @@ async function init() {
         }
     } else {
         ui.showScreen('login');
+    }
+}
+
+function updateSettingsUI() {
+    // Update order toggle
+    const orderBtn = document.getElementById('order-toggle-btn');
+    if (orderBtn) {
+        orderBtn.textContent = `Order: ${App.studySettings.order === 'sequential' ? 'Sequential' : 'Shuffled'}`;
+    }
+    
+    // Update start side toggle
+    const sideBtn = document.getElementById('side-toggle-btn');
+    if (sideBtn) {
+        sideBtn.textContent = `Start: ${App.studySettings.startSide === 'front' ? 'Front' : 'Back'}`;
+    }
+    
+    // Update track progress toggle
+    const trackBtn = document.getElementById('track-progress-toggle-btn');
+    if (trackBtn) {
+        trackBtn.textContent = `Track Progress: ${controls.trackProgress ? 'On' : 'Off'}`;
     }
 }
 
@@ -229,7 +259,12 @@ document.getElementById('flip-card-btn')?.addEventListener('click', () => {
 });
 
 document.getElementById('prev-card-btn')?.addEventListener('click', () => {
-    study.previousCard();
+    if (controls.trackProgress) {
+        // Mark as "don't know" (orange outline)
+        controls.showKnowState('dont-know');
+    } else {
+        study.previousCard();
+    }
 });
 
 document.getElementById('return-card-btn')?.addEventListener('click', () => {
@@ -237,37 +272,65 @@ document.getElementById('return-card-btn')?.addEventListener('click', () => {
 });
 
 document.getElementById('next-card-btn')?.addEventListener('click', () => {
-    study.nextCard();
+    if (controls.trackProgress) {
+        // Mark as "know" (green outline)
+        controls.showKnowState('know');
+    } else {
+        study.nextCard();
+    }
 });
 
-document.getElementById('order-toggle-btn')?.addEventListener('click', () => {
+document.getElementById('order-toggle-btn')?.addEventListener('click', async () => {
     App.studySettings.order = App.studySettings.order === 'sequential' ? 'shuffled' : 'sequential';
     const btn = document.getElementById('order-toggle-btn');
     if (btn) {
         btn.textContent = `Order: ${App.studySettings.order === 'sequential' ? 'Sequential' : 'Shuffled'}`;
     }
+    
+    // Save to gist
+    try {
+        await gists.updateSettings({ order: App.studySettings.order });
+    } catch (error) {
+        console.error('Failed to save settings:', error);
+    }
+    
     if (App.currentSetId) {
         study.startStudy(App.currentSetId, App.studySettings.order, App.studySettings.startSide);
     }
 });
 
-document.getElementById('side-toggle-btn')?.addEventListener('click', () => {
+document.getElementById('side-toggle-btn')?.addEventListener('click', async () => {
     App.studySettings.startSide = App.studySettings.startSide === 'front' ? 'back' : 'front';
     const btn = document.getElementById('side-toggle-btn');
     if (btn) {
         btn.textContent = `Start: ${App.studySettings.startSide === 'front' ? 'Front' : 'Back'}`;
     }
+    
+    // Save to gist
+    try {
+        await gists.updateSettings({ startSide: App.studySettings.startSide });
+    } catch (error) {
+        console.error('Failed to save settings:', error);
+    }
+    
     if (App.currentSetId) {
         study.startStudy(App.currentSetId, App.studySettings.order, App.studySettings.startSide);
     }
 });
 
-document.getElementById('track-progress-toggle-btn')?.addEventListener('click', () => {
+document.getElementById('track-progress-toggle-btn')?.addEventListener('click', async () => {
     const newState = !controls.trackProgress;
     controls.setTrackProgress(newState);
     const btn = document.getElementById('track-progress-toggle-btn');
     if (btn) {
         btn.textContent = `Track Progress: ${newState ? 'On' : 'Off'}`;
+    }
+    
+    // Save to gist
+    try {
+        await gists.updateSettings({ trackProgress: newState });
+    } catch (error) {
+        console.error('Failed to save settings:', error);
     }
 });
 

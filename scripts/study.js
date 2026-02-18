@@ -64,14 +64,34 @@ export class Study {
 
     nextCard() {
         this.currentIndex = (this.currentIndex + 1) % this.cards.length;
+        // Reset flip state BEFORE updating display to prevent flash
         this.isFlipped = this.startSide === 'back';
+        // Update flip state immediately (synchronously) before content
+        const flashcard = document.getElementById('flashcard');
+        if (flashcard) {
+            if (this.isFlipped) {
+                flashcard.classList.add('flipped');
+            } else {
+                flashcard.classList.remove('flipped');
+            }
+        }
         this.updateCardDisplay();
         this.updateProgress();
     }
 
     previousCard() {
         this.currentIndex = (this.currentIndex - 1 + this.cards.length) % this.cards.length;
+        // Reset flip state BEFORE updating display to prevent flash
         this.isFlipped = this.startSide === 'back';
+        // Update flip state immediately (synchronously) before content
+        const flashcard = document.getElementById('flashcard');
+        if (flashcard) {
+            if (this.isFlipped) {
+                flashcard.classList.add('flipped');
+            } else {
+                flashcard.classList.remove('flipped');
+            }
+        }
         this.updateCardDisplay();
         this.updateProgress();
     }
@@ -90,14 +110,21 @@ export class Study {
         frontContent.textContent = card.front || '(empty)';
         backContent.textContent = card.back || '(empty)';
 
-        // Update flip state with a small delay to ensure smooth animation
-        requestAnimationFrame(() => {
-            if (this.isFlipped) {
-                flashcard.classList.add('flipped');
-            } else {
-                flashcard.classList.remove('flipped');
-            }
-        });
+        // Flip state should already be set before this method is called
+        // Only update if it's not already correct (for flipCard() calls)
+        const shouldBeFlipped = this.isFlipped;
+        const isCurrentlyFlipped = flashcard.classList.contains('flipped');
+        
+        if (shouldBeFlipped !== isCurrentlyFlipped) {
+            // Use requestAnimationFrame only when state needs to change (for smooth flip animation)
+            requestAnimationFrame(() => {
+                if (this.isFlipped) {
+                    flashcard.classList.add('flipped');
+                } else {
+                    flashcard.classList.remove('flipped');
+                }
+            });
+        }
     }
 
     updateProgress() {

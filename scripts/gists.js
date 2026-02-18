@@ -45,6 +45,14 @@ export class Gists {
                     if (!this.data.sets || !Array.isArray(this.data.sets)) {
                         this.data = { sets: [] };
                     }
+                    // Ensure settings exist
+                    if (!this.data.settings) {
+                        this.data.settings = {
+                            order: 'sequential',
+                            startSide: 'front',
+                            trackProgress: false
+                        };
+                    }
                     console.warn('Loaded from cache due to error:', error);
                     return this.data;
                 } catch (parseError) {
@@ -75,6 +83,14 @@ export class Gists {
             this.data = JSON.parse(fileContent || '{"sets":[]}');
             if (!this.data.sets || !Array.isArray(this.data.sets)) {
                 this.data = { sets: [] };
+            }
+            // Ensure settings exist
+            if (!this.data.settings) {
+                this.data.settings = {
+                    order: 'sequential',
+                    startSide: 'front',
+                    trackProgress: false
+                };
             }
         } catch (parseError) {
             console.error('Failed to parse gist data:', parseError);
@@ -159,8 +175,30 @@ export class Gists {
                     front: (card.front || '').trim(),
                     back: (card.back || '').trim()
                 }))
-            }))
+            })),
+            settings: safeData.settings || {
+                order: 'sequential',
+                startSide: 'front',
+                trackProgress: false
+            }
         };
+    }
+
+    getSettings() {
+        if (!this.data.settings) {
+            this.data.settings = {
+                order: 'sequential',
+                startSide: 'front',
+                trackProgress: false
+            };
+        }
+        return this.data.settings;
+    }
+
+    async updateSettings(newSettings) {
+        const settings = this.getSettings();
+        Object.assign(settings, newSettings);
+        return this.saveData();
     }
 
     getGistUrl() {
