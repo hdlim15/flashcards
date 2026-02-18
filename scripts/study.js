@@ -60,10 +60,13 @@ export class Study {
 
     flipCard() {
         const flashcard = document.getElementById('flashcard');
-        if (flashcard) {
-            // Ensure flip transition is enabled for manual flips
-            flashcard.style.transition = '';
-        }
+        if (!flashcard) return;
+        
+        // Ensure flip transition is enabled for manual flips
+        // Remove any inline transform that might interfere
+        flashcard.style.transition = '';
+        flashcard.style.transform = '';
+        
         this.isFlipped = !this.isFlipped;
         this.updateCardDisplay();
     }
@@ -167,13 +170,16 @@ export class Study {
         // Update content
         this.updateCardContent();
 
-        // Flip state should already be set before this method is called
-        // Only update if it's not already correct (for flipCard() calls)
+        // For flipCard(), update the flip state with animation
         const shouldBeFlipped = this.isFlipped;
         const isCurrentlyFlipped = flashcard.classList.contains('flipped');
         
         if (shouldBeFlipped !== isCurrentlyFlipped) {
-            // Use requestAnimationFrame only when state needs to change (for smooth flip animation)
+            // Ensure transition is enabled for flip animation
+            flashcard.style.transition = '';
+            flashcard.style.transform = '';
+            
+            // Use requestAnimationFrame for smooth flip animation
             requestAnimationFrame(() => {
                 if (this.isFlipped) {
                     flashcard.classList.add('flipped');

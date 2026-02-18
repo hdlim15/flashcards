@@ -37,6 +37,7 @@ body {
     color: var(--text-primary);
     line-height: 1.6;
     min-height: 100vh;
+    overflow-x: hidden; /* Prevent horizontal scrollbar during animations */
 }
 
 #app {
@@ -402,6 +403,7 @@ body {
     justify-content: center;
     padding: var(--spacing-lg);
     min-height: calc(100vh - 80px);
+    overflow: hidden; /* Prevent scrollbars during animations */
 }
 
 .study-progress {
@@ -420,6 +422,7 @@ body {
     max-width: 600px;
     height: 400px;
     margin-bottom: var(--spacing-xl);
+    overflow: hidden; /* Prevent scrollbars during slide animation */
 }
 
 .flashcard {
