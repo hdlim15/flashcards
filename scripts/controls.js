@@ -152,23 +152,34 @@ export class Controls {
             this.isSwiping = true;
             const flashcard = document.getElementById('flashcard');
             if (flashcard) {
-                // Remove previous state
-                flashcard.classList.remove('swipe-know', 'swipe-dont-know');
+                // Move the card with the swipe, preserving flip state
+                const translateX = deltaX;
+                const isFlipped = flashcard.classList.contains('flipped');
+                const flipTransform = isFlipped ? 'rotateY(180deg) ' : '';
+                flashcard.style.transform = `${flipTransform}translateX(${translateX}px)`;
+                flashcard.style.transition = 'none'; // Disable transition during drag
                 
-                if (this.trackProgress) {
-                    // Track progress mode: swipe right = know, swipe left = don't know
-                    if (deltaX > 0) {
-                        // Swipe right - "know" (green)
-                        this.swipeState = 'know';
-                        flashcard.classList.add('swipe-know');
-                    } else {
-                        // Swipe left - "don't know" (orange)
-                        this.swipeState = 'dont-know';
-                        flashcard.classList.add('swipe-dont-know');
+                // Only show border/glow if swipe distance exceeds threshold
+                if (absDeltaX > this.minSwipeDistance) {
+                    // Remove previous state
+                    flashcard.classList.remove('swipe-know', 'swipe-dont-know');
+                    
+                    if (this.trackProgress) {
+                        // Track progress mode: swipe right = know, swipe left = don't know
+                        if (deltaX > 0) {
+                            // Swipe right - "know" (green)
+                            this.swipeState = 'know';
+                            flashcard.classList.add('swipe-know');
+                        } else {
+                            // Swipe left - "don't know" (orange)
+                            this.swipeState = 'dont-know';
+                            flashcard.classList.add('swipe-dont-know');
+                        }
                     }
                 } else {
-                    // Normal mode: swipe left = next, swipe right = prev (no visual feedback)
-                    // Just mark as swiping, no visual state
+                    // Not far enough yet, remove any visual state
+                    flashcard.classList.remove('swipe-know', 'swipe-dont-know');
+                    this.swipeState = null;
                 }
             }
         }
@@ -183,6 +194,16 @@ export class Controls {
         const deltaY = this.touchEndY - this.touchStartY;
         const absDeltaX = Math.abs(deltaX);
         const absDeltaY = Math.abs(deltaY);
+        
+        const flashcard = document.getElementById('flashcard');
+        
+        // Reset card position with smooth transition, preserving flip state
+        if (flashcard) {
+            const isFlipped = flashcard.classList.contains('flipped');
+            const flipTransform = isFlipped ? 'rotateY(180deg)' : '';
+            flashcard.style.transition = 'transform 0.3s ease-out';
+            flashcard.style.transform = flipTransform;
+        }
         
         if (this.isSwiping && absDeltaX > this.minSwipeDistance) {
             // Horizontal swipe detected
@@ -205,7 +226,7 @@ export class Controls {
                 }
             }
         } else {
-            // Not a swipe or insufficient distance
+            // Not a swipe or insufficient distance - snap back
             this.clearSwipeState();
             
             // If movement was very small, treat as tap
@@ -221,10 +242,21 @@ export class Controls {
         // Reset after a short delay to allow click prevention
         setTimeout(() => {
             this.touchStarted = false;
+            // Re-enable flip transition after swipe animation
+            if (flashcard) {
+                flashcard.style.transition = '';
+            }
         }, 300);
     }
 
     handleTouchCancel = () => {
+        const flashcard = document.getElementById('flashcard');
+        if (flashcard) {
+            const isFlipped = flashcard.classList.contains('flipped');
+            const flipTransform = isFlipped ? 'rotateY(180deg)' : '';
+            flashcard.style.transition = 'transform 0.3s ease-out';
+            flashcard.style.transform = flipTransform;
+        }
         this.clearSwipeState();
         this.isSwiping = false;
     }
@@ -241,6 +273,13 @@ export class Controls {
         const flashcard = document.getElementById('flashcard');
         if (flashcard) {
             flashcard.classList.remove('swipe-know', 'swipe-dont-know');
+            // Reset transform if not already reset, preserving flip state
+            if (flashcard.style.transform && !flashcard.style.transform.includes('rotateY')) {
+                const isFlipped = flashcard.classList.contains('flipped');
+                const flipTransform = isFlipped ? 'rotateY(180deg)' : '';
+                flashcard.style.transition = 'transform 0.3s ease-out';
+                flashcard.style.transform = flipTransform;
+            }
         }
         this.swipeState = null;
     }

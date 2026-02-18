@@ -167,7 +167,7 @@ export class Sets {
                 <h3>${this.escapeHtml(set.name)}</h3>
                 <div class="card-count">${set.cards.length} card${set.cards.length !== 1 ? 's' : ''}</div>
                 <div class="set-card-actions">
-                    <button class="btn btn-primary set-edit-btn" data-set-id="${this.escapeHtml(set.id)}">Edit</button>
+                    <button class="btn btn-text set-edit-btn" data-set-id="${this.escapeHtml(set.id)}">Edit</button>
                 </div>
             </div>
         `).join('');
