@@ -32,13 +32,15 @@
         <div id="dashboard-screen" class="screen hidden">
             <header class="header">
                 <h1>My Flashcard Sets</h1>
-                <button id="logout-btn" class="btn btn-text">Logout</button>
+                <div class="header-actions">
+                    <button id="create-set-btn" class="btn btn-primary">+ New Set</button>
+                    <button id="logout-btn" class="btn btn-text">Logout</button>
+                </div>
             </header>
             <main class="main-content">
                 <div id="sets-container" class="sets-container">
                     <!-- Sets will be rendered here -->
                 </div>
-                <button id="create-set-btn" class="btn btn-primary btn-fab">+ New Set</button>
             </main>
         </div>
 
@@ -120,6 +122,24 @@
 
         <!-- Error/Message Toast -->
         <div id="toast" class="toast hidden"></div>
+
+        <!-- Modal Overlay -->
+        <div id="modal-overlay" class="modal-overlay hidden">
+            <div class="modal">
+                <div class="modal-header">
+                    <h2 id="modal-title">Confirm</h2>
+                    <button class="modal-close" id="modal-close-btn">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p id="modal-message"></p>
+                    <input type="text" id="modal-input" class="input hidden" placeholder="">
+                </div>
+                <div class="modal-footer">
+                    <button id="modal-cancel-btn" class="btn btn-secondary">Cancel</button>
+                    <button id="modal-confirm-btn" class="btn btn-primary">Confirm</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script type="module" src="scripts/main.js"></script>

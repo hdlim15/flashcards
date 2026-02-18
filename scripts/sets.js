@@ -10,7 +10,7 @@ export class Sets {
     }
 
     async createNewSet() {
-        const name = prompt('Enter set name:');
+        const name = await window.ui.prompt('Enter set name:', 'My Flashcard Set');
         if (!name || !name.trim()) {
             return;
         }
@@ -62,7 +62,8 @@ export class Sets {
     }
 
     async deleteSet(setId) {
-        if (!confirm('Are you sure you want to delete this set? This cannot be undone.')) {
+        const confirmed = await window.ui.confirm('Are you sure you want to delete this set? This cannot be undone.');
+        if (!confirmed) {
             return;
         }
 

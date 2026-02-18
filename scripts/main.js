@@ -124,8 +124,9 @@ document.getElementById('token-input')?.addEventListener('keypress', (e) => {
     }
 });
 
-document.getElementById('logout-btn')?.addEventListener('click', () => {
-    if (confirm('Are you sure you want to logout? Your token will be cleared from this device.')) {
+document.getElementById('logout-btn')?.addEventListener('click', async () => {
+    const confirmed = await ui.confirm('Are you sure you want to logout? Your token will be cleared from this device.');
+    if (confirmed) {
         auth.clearToken();
         // Also clear cached data
         localStorage.removeItem('flashcards_cache');
