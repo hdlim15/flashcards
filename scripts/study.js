@@ -49,7 +49,8 @@ export class Study {
         
         this.currentIndex = 0;
         this.updateCardContent();
-        this.updateCardDisplay();
+        // Skip animation when starting study - show correct side immediately
+        this.updateCardDisplay(true);
         this.updateProgress();
     }
 
@@ -170,7 +171,7 @@ export class Study {
         backContent.textContent = card.back || '(empty)';
     }
 
-    updateCardDisplay() {
+    updateCardDisplay(skipAnimation = false) {
         if (this.cards.length === 0) return;
 
         const flashcard = document.getElementById('flashcard');
@@ -184,18 +185,32 @@ export class Study {
         const isCurrentlyFlipped = flashcard.classList.contains('flipped');
         
         if (shouldBeFlipped !== isCurrentlyFlipped) {
-            // Ensure transition is enabled for flip animation
-            flashcard.style.transition = '';
-            flashcard.style.transform = '';
-            
-            // Use requestAnimationFrame for smooth flip animation
-            requestAnimationFrame(() => {
+            if (skipAnimation) {
+                // Set instantly without animation
+                flashcard.style.transition = 'none';
                 if (this.isFlipped) {
                     flashcard.classList.add('flipped');
                 } else {
                     flashcard.classList.remove('flipped');
                 }
-            });
+                // Re-enable transition after a brief moment
+                setTimeout(() => {
+                    flashcard.style.transition = '';
+                }, 50);
+            } else {
+                // Ensure transition is enabled for flip animation
+                flashcard.style.transition = '';
+                flashcard.style.transform = '';
+                
+                // Use requestAnimationFrame for smooth flip animation
+                requestAnimationFrame(() => {
+                    if (this.isFlipped) {
+                        flashcard.classList.add('flipped');
+                    } else {
+                        flashcard.classList.remove('flipped');
+                    }
+                });
+            }
         }
     }
 
