@@ -6,6 +6,7 @@ A responsive flashcard application that syncs across devices using GitHub Gists.
 
 - Create multiple flashcard sets
 - Add, edit, and delete cards
+- **Import from CSV** - Bulk import cards from CSV files
 - Study modes:
   - Sequential or shuffled order
   - Start with front or back first

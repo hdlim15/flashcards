@@ -5,6 +5,7 @@ import { Sets } from './sets.js';
 import { Study } from './study.js';
 import { UI } from './ui.js';
 import { Controls } from './controls.js';
+import { CSVImport } from './csv-import.js';
 
 // Initialize app state
 const App = {
@@ -20,6 +21,7 @@ const sets = new Sets(gists);
 const study = new Study();
 const ui = new UI();
 const controls = new Controls(study);
+const csvImport = new CSVImport(sets);
 
 // Initialize app
 async function init() {
@@ -141,6 +143,41 @@ document.getElementById('create-set-btn')?.addEventListener('click', () => {
     sets.createNewSet();
 });
 
+document.getElementById('import-csv-btn')?.addEventListener('click', () => {
+    document.getElementById('csv-file-input').click();
+});
+
+document.getElementById('csv-file-input')?.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Reset input so same file can be selected again
+    e.target.value = '';
+
+    try {
+        ui.showMessage('Reading CSV file...');
+        const cards = await csvImport.importFromFile(file);
+        
+        // Prompt for set name
+        const setName = await ui.prompt(
+            `Import ${cards.length} cards from CSV. Enter a name for this set:`,
+            file.name.replace('.csv', '') || 'Imported Set'
+        );
+
+        if (!setName || !setName.trim()) {
+            return;
+        }
+
+        ui.showMessage('Creating flashcard set...');
+        await csvImport.createSetFromCSV(cards, setName.trim());
+        ui.showMessage(`Successfully imported ${cards.length} cards!`);
+        sets.renderSets();
+    } catch (error) {
+        console.error('CSV import error:', error);
+        ui.showError('Failed to import CSV: ' + error.message);
+    }
+});
+
 document.getElementById('back-to-dashboard-btn')?.addEventListener('click', () => {
     ui.showScreen('dashboard');
     sets.renderSets();
@@ -204,6 +241,7 @@ window.gists = gists;
 window.sets = sets;
 window.study = study;
 window.ui = ui;
+window.csvImport = csvImport;
 
 // Start app
 init();

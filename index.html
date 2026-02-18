@@ -33,10 +33,12 @@
             <header class="header">
                 <h1>My Flashcard Sets</h1>
                 <div class="header-actions">
+                    <button id="import-csv-btn" class="btn btn-secondary">Import CSV</button>
                     <button id="create-set-btn" class="btn btn-primary">+ New Set</button>
                     <button id="logout-btn" class="btn btn-text">Logout</button>
                 </div>
             </header>
+            <input type="file" id="csv-file-input" accept=".csv" style="display: none;">
             <main class="main-content">
                 <div id="sets-container" class="sets-container">
                     <!-- Sets will be rendered here -->
