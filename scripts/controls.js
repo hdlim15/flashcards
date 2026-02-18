@@ -120,9 +120,11 @@ export class Controls {
             } else if (state === 'dont-know') {
                 flashcard.classList.add('swipe-dont-know');
             }
-            // Clear after a delay
+            // Clear after a delay and move to next card
             setTimeout(() => {
                 this.clearSwipeState();
+                // Move to next card after marking
+                this.study.nextCard();
             }, 300);
         }
     }
@@ -185,9 +187,11 @@ export class Controls {
         if (this.isSwiping && absDeltaX > this.minSwipeDistance) {
             // Horizontal swipe detected
             if (this.trackProgress) {
-                // Track progress mode: show visual feedback, clear after delay
+                // Track progress mode: show visual feedback, then move to next card
                 setTimeout(() => {
                     this.clearSwipeState();
+                    // Move to next card after marking
+                    this.study.nextCard();
                 }, 300);
             } else {
                 // Normal mode: navigate cards
