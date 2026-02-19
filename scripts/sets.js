@@ -82,6 +82,9 @@ export class Sets {
     }
 
     async addCard(setId) {
+        // Save any unsaved input values before re-rendering
+        this.saveAllCardInputs(setId);
+        
         const data = this.gists.getData();
         const set = data.sets.find(s => s.id === setId);
         if (!set) return;
@@ -96,8 +99,36 @@ export class Sets {
         set.cards.push(newCard);
         this.renderCards(setId);
     }
+    
+    // Save all card input values from DOM to data model before re-rendering
+    saveAllCardInputs(setId) {
+        const container = document.getElementById('cards-container');
+        if (!container) return;
+        
+        const data = this.gists.getData();
+        const set = data.sets.find(s => s.id === setId);
+        if (!set) return;
+        
+        // Get all card inputs and update the data model
+        container.querySelectorAll('.card-item').forEach(cardItem => {
+            const cardId = cardItem.dataset.cardId;
+            if (!cardId) return;
+            
+            const frontInput = cardItem.querySelector(`.card-front-input[data-card-id="${cardId}"]`);
+            const backInput = cardItem.querySelector(`.card-back-input[data-card-id="${cardId}"]`);
+            
+            if (frontInput && backInput) {
+                const card = set.cards.find(c => c.id === cardId);
+                if (card) {
+                    card.front = frontInput.value;
+                    card.back = backInput.value;
+                    card._draft = !(frontInput.value.trim().length > 0 && backInput.value.trim().length > 0);
+                }
+            }
+        });
+    }
 
-    async updateCard(setId, cardId, front, back) {
+    async updateCard(setId, cardId, front, back, forceSave = false) {
         const data = this.gists.getData();
         const set = data.sets.find(s => s.id === setId);
         if (!set) return;
@@ -113,8 +144,8 @@ export class Sets {
             card.back = back;
             card._draft = !(front.trim().length > 0 && back.trim().length > 0);
 
-            // Only persist when both sides are non-empty
-            if (card._draft) {
+            // Only persist when both sides are non-empty, or if forceSave is true
+            if (card._draft && !forceSave) {
                 return;
             }
             try {
@@ -168,7 +199,11 @@ export class Sets {
 
         container.innerHTML = allSets.map(set => {
             const isDynamic = set.isDynamic || set.id === 'DYNAMIC_NUMBERS';
-            const cardCount = isDynamic ? '∞ cards' : `${set.cards.length} card${set.cards.length !== 1 ? 's' : ''}`;
+            // Count only non-draft cards (matching study mode behavior)
+            const validCards = isDynamic ? [] : set.cards.filter(card => 
+                (card.front && card.front.trim()) || (card.back && card.back.trim())
+            );
+            const cardCount = isDynamic ? '∞ cards' : `${validCards.length} card${validCards.length !== 1 ? 's' : ''}`;
             const editButton = isDynamic ? '' : `<button class="btn btn-text set-edit-btn" data-set-id="${this.escapeHtml(set.id)}">Edit</button>`;
             
             return `
@@ -247,23 +282,45 @@ export class Sets {
                     </div>
                 </div>
                 <div class="card-actions">
+                    <button class="btn btn-primary btn-text card-save-btn" data-set-id="${this.escapeHtml(setId)}" data-card-id="${this.escapeHtml(card.id)}">Save</button>
                     <button class="btn btn-danger btn-text card-delete-btn" data-set-id="${this.escapeHtml(setId)}" data-card-id="${this.escapeHtml(card.id)}">Delete</button>
                 </div>
             </div>
         `).join('');
 
+        // Add event listeners for Save buttons
+        container.querySelectorAll('.card-save-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const button = e.currentTarget;
+                const setId = button.dataset.setId;
+                const cardId = button.dataset.cardId;
+                if (setId && cardId) {
+                    const cardItem = button.closest('.card-item');
+                    const frontInput = cardItem.querySelector(`.card-front-input[data-card-id="${cardId}"]`);
+                    const backInput = cardItem.querySelector(`.card-back-input[data-card-id="${cardId}"]`);
+                    if (frontInput && backInput) {
+                        await this.updateCard(setId, cardId, frontInput.value, backInput.value, true);
+                        window.ui.showMessage('Card saved');
+                    }
+                }
+            });
+        });
+
         // Use event delegation instead of inline onclick
         container.querySelectorAll('.card-delete-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                const setId = e.target.dataset.setId;
-                const cardId = e.target.dataset.cardId;
+                e.stopPropagation();
+                const button = e.currentTarget;
+                const setId = button.dataset.setId;
+                const cardId = button.dataset.cardId;
                 if (setId && cardId) {
                     this.deleteCard(setId, cardId);
                 }
             });
         });
 
-        // Add event listeners for card updates
+        // Add event listeners for card updates (auto-save)
         container.querySelectorAll('.card-front-input, .card-back-input').forEach(input => {
             let timeout;
             input.addEventListener('input', () => {

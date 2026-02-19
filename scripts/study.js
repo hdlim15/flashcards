@@ -45,6 +45,16 @@ export class Study {
             editBtn.style.display = '';
         }
         
+        // Show track progress and order buttons for regular sets
+        const trackProgressBtn = document.getElementById('track-progress-toggle-btn');
+        if (trackProgressBtn) {
+            trackProgressBtn.style.display = '';
+        }
+        const orderBtn = document.getElementById('order-toggle-btn');
+        if (orderBtn) {
+            orderBtn.style.display = '';
+        }
+        
         // Store reference to original set for updates
         this.originalSet = set;
         
@@ -76,6 +86,16 @@ export class Study {
         const editBtn = document.getElementById('edit-card-btn');
         if (editBtn) {
             editBtn.style.display = 'none';
+        }
+        
+        // Hide track progress and order buttons for dynamic sets
+        const trackProgressBtn = document.getElementById('track-progress-toggle-btn');
+        if (trackProgressBtn) {
+            trackProgressBtn.style.display = 'none';
+        }
+        const orderBtn = document.getElementById('order-toggle-btn');
+        if (orderBtn) {
+            orderBtn.style.display = 'none';
         }
         
         // Generate first card
