@@ -233,6 +233,12 @@ document.getElementById('add-card-btn')?.addEventListener('click', () => {
     }
 });
 
+document.getElementById('save-set-btn')?.addEventListener('click', async () => {
+    if (App.currentSetId) {
+        await sets.saveAllCards(App.currentSetId);
+    }
+});
+
 document.getElementById('back-from-study-options-btn')?.addEventListener('click', () => {
     ui.showScreen('dashboard');
 });

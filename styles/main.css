@@ -175,6 +175,11 @@ body {
     background-color: var(--primary-hover);
 }
 
+/* Ensure btn-primary text is always white, even when combined with btn-text */
+.btn-primary.btn-text {
+    color: white !important;
+}
+
 .btn-secondary {
     background-color: var(--secondary-color);
     color: white;
@@ -186,6 +191,7 @@ body {
 }
 
 .btn-text {
+    background-color: transparent;
     color: var(--primary-color);
     padding: var(--spacing-sm);
 }
@@ -196,6 +202,11 @@ body {
 
 .btn-danger {
     color: var(--danger-color);
+    background-color: transparent;
+}
+
+.btn-danger.btn-text {
+    color: var(--danger-color) !important;
 }
 
 .btn-icon {
@@ -332,10 +343,52 @@ body {
     border-radius: var(--border-radius);
     padding: var(--spacing-md);
     box-shadow: var(--shadow);
+    position: relative;
+    cursor: move;
+    transition: var(--transition);
 }
 
 .card-item.editing {
     border-color: var(--primary-color);
+}
+
+.card-item.dragging {
+    opacity: 0.5;
+    cursor: grabbing;
+}
+
+.card-item.drag-over {
+    border-color: var(--primary-color);
+    border-style: dashed;
+    background-color: rgba(59, 130, 246, 0.1);
+}
+
+.card-drag-handle {
+    position: absolute;
+    top: var(--spacing-md);
+    left: var(--spacing-md);
+    color: var(--text-secondary);
+    cursor: grab;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-xs);
+    border-radius: var(--border-radius);
+    transition: var(--transition);
+    z-index: 1;
+}
+
+.card-drag-handle:hover {
+    color: var(--primary-color);
+    background-color: rgba(59, 130, 246, 0.1);
+}
+
+.card-drag-handle:active {
+    cursor: grabbing;
+}
+
+.card-item.dragging .card-drag-handle {
+    cursor: grabbing;
 }
 
 .card-inputs {
@@ -343,6 +396,7 @@ body {
     flex-direction: row;
     gap: var(--spacing-md);
     margin-bottom: var(--spacing-md);
+    margin-left: calc(28px + var(--spacing-sm)); /* Space for drag handle */
 }
 
 .card-input-group {

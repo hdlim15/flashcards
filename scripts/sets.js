@@ -128,6 +128,27 @@ export class Sets {
         });
     }
 
+    async saveAllCards(setId) {
+        // Save all input values from DOM to data model
+        this.saveAllCardInputs(setId);
+        
+        const data = this.gists.getData();
+        const set = data.sets.find(s => s.id === setId);
+        if (!set) {
+            window.ui.showError('Set not found');
+            return;
+        }
+
+        try {
+            // Save all cards, including drafts
+            await this.gists.updateData(data);
+            window.ui.showMessage('Set saved successfully');
+        } catch (error) {
+            console.error('Failed to save set:', error);
+            window.ui.showError('Failed to save set: ' + error.message);
+        }
+    }
+
     async updateCard(setId, cardId, front, back, forceSave = false) {
         const data = this.gists.getData();
         const set = data.sets.find(s => s.id === setId);
@@ -271,6 +292,16 @@ export class Sets {
 
         container.innerHTML = set.cards.map(card => `
             <div class="card-item" data-card-id="${this.escapeHtml(card.id)}">
+                <div class="card-drag-handle" title="Drag to reorder" draggable="true">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="9" cy="12" r="1"></circle>
+                        <circle cx="9" cy="5" r="1"></circle>
+                        <circle cx="9" cy="19" r="1"></circle>
+                        <circle cx="15" cy="12" r="1"></circle>
+                        <circle cx="15" cy="5" r="1"></circle>
+                        <circle cx="15" cy="19" r="1"></circle>
+                    </svg>
+                </div>
                 <div class="card-inputs">
                     <div class="card-input-group">
                         <label>Front</label>
@@ -282,30 +313,11 @@ export class Sets {
                     </div>
                 </div>
                 <div class="card-actions">
-                    <button class="btn btn-primary btn-text card-save-btn" data-set-id="${this.escapeHtml(setId)}" data-card-id="${this.escapeHtml(card.id)}">Save</button>
                     <button class="btn btn-danger btn-text card-delete-btn" data-set-id="${this.escapeHtml(setId)}" data-card-id="${this.escapeHtml(card.id)}">Delete</button>
                 </div>
             </div>
         `).join('');
 
-        // Add event listeners for Save buttons
-        container.querySelectorAll('.card-save-btn').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                e.stopPropagation();
-                const button = e.currentTarget;
-                const setId = button.dataset.setId;
-                const cardId = button.dataset.cardId;
-                if (setId && cardId) {
-                    const cardItem = button.closest('.card-item');
-                    const frontInput = cardItem.querySelector(`.card-front-input[data-card-id="${cardId}"]`);
-                    const backInput = cardItem.querySelector(`.card-back-input[data-card-id="${cardId}"]`);
-                    if (frontInput && backInput) {
-                        await this.updateCard(setId, cardId, frontInput.value, backInput.value, true);
-                        window.ui.showMessage('Card saved');
-                    }
-                }
-            });
-        });
 
         // Use event delegation instead of inline onclick
         container.querySelectorAll('.card-delete-btn').forEach(btn => {
@@ -333,6 +345,147 @@ export class Sets {
                 }, 500);
             });
         });
+
+        // Add drag and drop event listeners
+        this.setupDragAndDrop(setId, container);
+    }
+
+    setupDragAndDrop(setId, container) {
+        let draggedElement = null;
+        let draggedIndex = null;
+
+        container.querySelectorAll('.card-item').forEach((cardItem, index) => {
+            const dragHandle = cardItem.querySelector('.card-drag-handle');
+            
+            // Handle drag start from the drag handle
+            if (dragHandle) {
+                dragHandle.addEventListener('dragstart', (e) => {
+                    draggedElement = cardItem;
+                    draggedIndex = index;
+                    cardItem.classList.add('dragging');
+                    e.dataTransfer.effectAllowed = 'move';
+                    e.dataTransfer.setData('text/html', cardItem.innerHTML);
+                });
+
+                dragHandle.addEventListener('dragend', (e) => {
+                    cardItem.classList.remove('dragging');
+                    container.querySelectorAll('.card-item').forEach(item => {
+                        item.classList.remove('drag-over');
+                    });
+                    draggedElement = null;
+                    draggedIndex = null;
+                });
+            }
+
+            // Make the entire card item a drop zone
+            cardItem.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                
+                const afterElement = this.getDragAfterElement(container, e.clientY);
+                const dragging = container.querySelector('.dragging');
+                
+                if (dragging && afterElement == null) {
+                    container.appendChild(dragging);
+                } else if (dragging && afterElement) {
+                    container.insertBefore(dragging, afterElement);
+                }
+            });
+
+
+            cardItem.addEventListener('dragenter', (e) => {
+                e.preventDefault();
+                if (cardItem !== draggedElement) {
+                    cardItem.classList.add('drag-over');
+                }
+            });
+
+            cardItem.addEventListener('dragleave', (e) => {
+                cardItem.classList.remove('drag-over');
+            });
+
+            cardItem.addEventListener('drop', async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                cardItem.classList.remove('drag-over');
+                
+                if (draggedElement) {
+                    // Save any unsaved input values before reordering
+                    this.saveAllCardInputs(setId);
+                    
+                    // Get the new order from DOM
+                    const cardItems = Array.from(container.querySelectorAll('.card-item'));
+                    const newOrder = cardItems.map(item => item.dataset.cardId);
+                    
+                    // Update the data model with new order
+                    await this.reorderCards(setId, newOrder);
+                    draggedElement = null;
+                    draggedIndex = null;
+                }
+            });
+        });
+
+        // Also handle drop on the container itself (for dropping at the end)
+        container.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            if (draggedElement) {
+                // Save any unsaved input values before reordering
+                this.saveAllCardInputs(setId);
+                
+                // Get the new order from DOM
+                const cardItems = Array.from(container.querySelectorAll('.card-item'));
+                const newOrder = cardItems.map(item => item.dataset.cardId);
+                
+                // Update the data model with new order
+                await this.reorderCards(setId, newOrder);
+                draggedElement = null;
+                draggedIndex = null;
+            }
+        });
+
+        container.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+        });
+    }
+
+    getDragAfterElement(container, y) {
+        const draggableElements = [...container.querySelectorAll('.card-item:not(.dragging)')];
+        
+        return draggableElements.reduce((closest, child) => {
+            const box = child.getBoundingClientRect();
+            const offset = y - box.top - box.height / 2;
+            
+            if (offset < 0 && offset > closest.offset) {
+                return { offset: offset, element: child };
+            } else {
+                return closest;
+            }
+        }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
+
+    async reorderCards(setId, newOrder) {
+        const data = this.gists.getData();
+        const set = data.sets.find(s => s.id === setId);
+        if (!set) return;
+
+        // Create a map of card ID to card object
+        const cardMap = new Map(set.cards.map(card => [card.id, card]));
+        
+        // Reorder cards based on newOrder array
+        set.cards = newOrder.map(cardId => cardMap.get(cardId)).filter(card => card !== undefined);
+        
+        try {
+            await this.gists.updateData(data);
+            // Re-render to ensure UI matches data
+            this.renderCards(setId);
+            window.ui.showMessage('Card order updated');
+        } catch (error) {
+            console.error('Failed to reorder cards:', error);
+            window.ui.showError('Failed to save card order: ' + error.message);
+            // Re-render to restore original order
+            this.renderCards(setId);
+        }
     }
 
     startStudyOptions(setId) {
