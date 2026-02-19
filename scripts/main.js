@@ -297,7 +297,12 @@ document.getElementById('order-toggle-btn')?.addEventListener('click', async () 
     }
     
     if (App.currentSetId) {
-        study.startStudy(App.currentSetId, App.studySettings.order, App.studySettings.startSide);
+        // Check if it's a dynamic set
+        if (dynamicNumbers.isDynamicSet(App.currentSetId)) {
+            study.startDynamicStudy(App.currentSetId, App.studySettings.order, App.studySettings.startSide);
+        } else {
+            study.startStudy(App.currentSetId, App.studySettings.order, App.studySettings.startSide);
+        }
     }
 });
 
@@ -316,7 +321,12 @@ document.getElementById('side-toggle-btn')?.addEventListener('click', async () =
     }
     
     if (App.currentSetId) {
-        study.startStudy(App.currentSetId, App.studySettings.order, App.studySettings.startSide);
+        // Check if it's a dynamic set
+        if (dynamicNumbers.isDynamicSet(App.currentSetId)) {
+            study.startDynamicStudy(App.currentSetId, App.studySettings.order, App.studySettings.startSide);
+        } else {
+            study.startStudy(App.currentSetId, App.studySettings.order, App.studySettings.startSide);
+        }
     }
 });
 
