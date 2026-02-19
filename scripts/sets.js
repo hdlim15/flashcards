@@ -313,7 +313,7 @@ export class Sets {
                     </div>
                 </div>
                 <div class="card-actions">
-                    <button class="btn btn-danger btn-text card-delete-btn" data-set-id="${this.escapeHtml(setId)}" data-card-id="${this.escapeHtml(card.id)}">Delete</button>
+                    <button class="btn btn-danger btn-text card-delete-btn" data-set-id="${this.escapeHtml(setId)}" data-card-id="${this.escapeHtml(card.id)}" tabindex="-1">Delete</button>
                 </div>
             </div>
         `).join('');
@@ -333,7 +333,8 @@ export class Sets {
         });
 
         // Add event listeners for card updates (auto-save)
-        container.querySelectorAll('.card-front-input, .card-back-input').forEach(input => {
+        const allInputs = container.querySelectorAll('.card-front-input, .card-back-input');
+        allInputs.forEach((input, index) => {
             let timeout;
             input.addEventListener('input', () => {
                 clearTimeout(timeout);
@@ -345,6 +346,47 @@ export class Sets {
                 }, 500);
             });
         });
+
+        // Auto-add card when tabbing from last card's back input
+        const lastCardItem = container.querySelector('.card-item:last-child');
+        if (lastCardItem) {
+            const lastBackInput = lastCardItem.querySelector('.card-back-input');
+            if (lastBackInput) {
+                lastBackInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Tab' && !e.shiftKey) {
+                        // Check if next focusable element would be the Add Card button
+                        const addCardBtn = document.getElementById('add-card-btn');
+                        if (addCardBtn) {
+                            // Get all focusable elements
+                            const focusableElements = document.querySelectorAll(
+                                'a[href], button:not([tabindex="-1"]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+                            );
+                            const focusableArray = Array.from(focusableElements);
+                            const currentIndex = focusableArray.indexOf(lastBackInput);
+                            const nextIndex = currentIndex + 1;
+                            
+                            if (nextIndex < focusableArray.length && focusableArray[nextIndex] === addCardBtn) {
+                                // Next element is Add Card button, so add a card instead
+                                e.preventDefault();
+                                this.addCard(setId);
+                                
+                                // Focus the new card's front input after it's rendered
+                                setTimeout(() => {
+                                    const newCardItems = container.querySelectorAll('.card-item');
+                                    if (newCardItems.length > 0) {
+                                        const newLastCard = newCardItems[newCardItems.length - 1];
+                                        const newFrontInput = newLastCard.querySelector('.card-front-input');
+                                        if (newFrontInput) {
+                                            newFrontInput.focus();
+                                        }
+                                    }
+                                }, 50);
+                            }
+                        }
+                    }
+                });
+            }
+        }
 
         // Add drag and drop event listeners
         this.setupDragAndDrop(setId, container);
