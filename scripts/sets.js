@@ -152,7 +152,11 @@ export class Sets {
         
         if (!container) return;
 
-        if (sets.length === 0) {
+        // Get dynamic numbers set if available
+        const dynamicNumbersSet = window.dynamicNumbers?.getSetInfo();
+        const allSets = dynamicNumbersSet ? [dynamicNumbersSet, ...sets] : sets;
+
+        if (allSets.length === 0) {
             container.innerHTML = `
                 <div class="empty-state">
                     <h2>No flashcard sets yet</h2>
@@ -162,15 +166,21 @@ export class Sets {
             return;
         }
 
-        container.innerHTML = sets.map(set => `
-            <div class="set-card" data-set-id="${this.escapeHtml(set.id)}">
-                <h3>${this.escapeHtml(set.name)}</h3>
-                <div class="card-count">${set.cards.length} card${set.cards.length !== 1 ? 's' : ''}</div>
-                <div class="set-card-actions">
-                    <button class="btn btn-text set-edit-btn" data-set-id="${this.escapeHtml(set.id)}">Edit</button>
+        container.innerHTML = allSets.map(set => {
+            const isDynamic = set.isDynamic || set.id === 'DYNAMIC_NUMBERS';
+            const cardCount = isDynamic ? '∞ cards' : `${set.cards.length} card${set.cards.length !== 1 ? 's' : ''}`;
+            const editButton = isDynamic ? '' : `<button class="btn btn-text set-edit-btn" data-set-id="${this.escapeHtml(set.id)}">Edit</button>`;
+            
+            return `
+                <div class="set-card" data-set-id="${this.escapeHtml(set.id)}">
+                    <h3>${this.escapeHtml(set.name)}</h3>
+                    <div class="card-count">${cardCount}</div>
+                    <div class="set-card-actions">
+                        ${editButton}
+                    </div>
                 </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
 
         // Click anywhere on set card to study
         container.querySelectorAll('.set-card').forEach(card => {
@@ -269,6 +279,17 @@ export class Sets {
     }
 
     startStudyOptions(setId) {
+        // Check if it's the dynamic numbers set
+        if (window.dynamicNumbers?.isDynamicSet(setId)) {
+            window.App.currentSetId = setId;
+            const order = window.App.studySettings?.order || 'sequential';
+            const startSide = window.App.studySettings?.startSide || 'front';
+            window.study.startDynamicStudy(setId, order, startSide);
+            window.ui.showScreen('study');
+            window.controls?.attach?.();
+            return;
+        }
+
         const data = this.gists.getData();
         const set = data.sets.find(s => s.id === setId);
         

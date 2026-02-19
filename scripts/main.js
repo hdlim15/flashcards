@@ -6,6 +6,7 @@ import { Study } from './study.js';
 import { UI } from './ui.js';
 import { Controls } from './controls.js';
 import { CSVImport } from './csv-import.js';
+import { DynamicNumbers } from './dynamic-numbers.js';
 
 // Initialize app state
 const App = {
@@ -26,6 +27,7 @@ const study = new Study();
 const ui = new UI();
 const controls = new Controls(study);
 const csvImport = new CSVImport(sets);
+const dynamicNumbers = new DynamicNumbers();
 
 // Initialize app
 async function init() {
@@ -355,6 +357,7 @@ window.study = study;
 window.ui = ui;
 window.csvImport = csvImport;
 window.controls = controls;
+window.dynamicNumbers = dynamicNumbers;
 
 // Start app
 init();

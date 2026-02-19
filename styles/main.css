@@ -452,12 +452,21 @@ body {
 
 /* Card Edit Mode */
 .card-edit-mode {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: var(--spacing-xl);
+    overflow-y: auto;
+    overflow-x: hidden;
+    background-color: var(--surface-color);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-lg);
+    z-index: 10;
 }
 
 .card-edit-form {
@@ -468,6 +477,8 @@ body {
     padding: var(--spacing-xl);
     box-shadow: var(--shadow-lg);
     border: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
 }
 
 .card-edit-input-group {
@@ -631,6 +642,24 @@ body {
 
     .card-container {
         height: 300px;
+    }
+
+    .card-edit-mode {
+        align-items: flex-start;
+        padding: var(--spacing-md);
+    }
+
+    .card-edit-form {
+        padding: var(--spacing-md);
+        max-height: 100%;
+    }
+
+    .card-edit-actions {
+        margin-top: var(--spacing-md);
+        position: sticky;
+        bottom: 0;
+        background-color: var(--surface-color);
+        padding-top: var(--spacing-md);
     }
 
     .card-content {

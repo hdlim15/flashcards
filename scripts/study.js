@@ -6,6 +6,8 @@ export class Study {
         this.currentIndex = 0;
         this.isFlipped = false;
         this.startSide = 'front';
+        this.isDynamic = false; // Flag for dynamic sets
+        this.originalSet = null; // Reference to the original set for updates
     }
 
     startStudy(setId, order, startSide) {
@@ -35,6 +37,13 @@ export class Study {
         this.currentSetId = setId;
         this.startSide = startSide;
         this.isFlipped = startSide === 'back';
+        this.isDynamic = false;
+        
+        // Show edit button for regular sets
+        const editBtn = document.getElementById('edit-card-btn');
+        if (editBtn) {
+            editBtn.style.display = '';
+        }
         
         // Store reference to original set for updates
         this.originalSet = set;
@@ -52,6 +61,40 @@ export class Study {
         // Skip animation when starting study - show correct side immediately
         this.updateCardDisplay(true);
         this.updateProgress();
+        this.cancelEditMode(); // Ensure edit mode is off when starting study
+    }
+
+    startDynamicStudy(setId, order, startSide) {
+        // Dynamic sets don't use order/shuffle since each card is generated fresh
+        this.currentSetId = setId;
+        this.startSide = startSide;
+        this.isFlipped = startSide === 'back';
+        this.isDynamic = true;
+        this.originalSet = null;
+        
+        // Hide edit button for dynamic sets
+        const editBtn = document.getElementById('edit-card-btn');
+        if (editBtn) {
+            editBtn.style.display = 'none';
+        }
+        
+        // Generate first card
+        this.cards = [];
+        this.currentIndex = 0;
+        this.generateNewCard();
+        this.updateCardContent();
+        this.updateCardDisplay(true); // Skip animation when starting study
+        this.updateProgress();
+        this.cancelEditMode(); // Ensure edit mode is off when starting study
+    }
+
+    generateNewCard() {
+        if (!this.isDynamic || !window.dynamicNumbers) return;
+        
+        const newCard = window.dynamicNumbers.generateCard();
+        // For dynamic sets, we only keep the current card
+        this.cards = [newCard];
+        this.currentIndex = 0;
     }
 
     shuffleCards() {
@@ -82,6 +125,14 @@ export class Study {
         const flashcard = document.getElementById('flashcard');
         if (!flashcard) return;
         
+        // For dynamic sets, generate a new card instead of navigating
+        if (this.isDynamic) {
+            this.generateNewCard();
+        } else {
+            // Update content first
+            this.currentIndex = (this.currentIndex + 1) % this.cards.length;
+        }
+        
         // Disable flip transition for navigation
         flashcard.style.transition = 'none';
         
@@ -95,8 +146,6 @@ export class Study {
             flashcard.classList.remove('flipped');
         }
         
-        // Update content first
-        this.currentIndex = (this.currentIndex + 1) % this.cards.length;
         this.updateCardContent();
         
         // Slide animation: start new card from right, slide to center
@@ -119,6 +168,12 @@ export class Study {
     previousCard() {
         // Cancel edit mode if active
         this.cancelEditMode();
+        
+        // For dynamic sets, previous card doesn't make sense (cards are temporary)
+        if (this.isDynamic) {
+            window.ui.showMessage('Previous card not available for dynamic sets');
+            return;
+        }
         
         const flashcard = document.getElementById('flashcard');
         if (!flashcard) return;
@@ -163,12 +218,20 @@ export class Study {
         const card = this.cards[this.currentIndex];
         const frontContent = document.getElementById('card-front-content');
         const backContent = document.getElementById('card-back-content');
+        const editFrontInput = document.getElementById('card-edit-front');
+        const editBackInput = document.getElementById('card-edit-back');
 
         if (!frontContent || !backContent) return;
 
         // Use textContent to prevent XSS, but preserve line breaks
         frontContent.textContent = card.front || '(empty)';
         backContent.textContent = card.back || '(empty)';
+
+        // Also update edit mode inputs if they exist
+        if (editFrontInput && editBackInput) {
+            editFrontInput.value = card.front || '';
+            editBackInput.value = card.back || '';
+        }
     }
 
     updateCardDisplay(skipAnimation = false) {
@@ -217,7 +280,11 @@ export class Study {
     updateProgress() {
         const progressEl = document.getElementById('study-progress');
         if (progressEl) {
-            progressEl.textContent = `${this.currentIndex + 1} / ${this.cards.length}`;
+            if (this.isDynamic) {
+                progressEl.textContent = 'Numbers';
+            } else {
+                progressEl.textContent = `${this.currentIndex + 1} / ${this.cards.length}`;
+            }
         }
     }
 
@@ -226,6 +293,9 @@ export class Study {
         this.cards = [];
         this.currentIndex = 0;
         this.isFlipped = false;
+        this.isDynamic = false;
+        this.originalSet = null;
+        this.cancelEditMode(); // Ensure edit mode is off when exiting study
     }
 
     getCurrentCard() {
@@ -239,6 +309,12 @@ export class Study {
     }
 
     startEditMode() {
+        // Dynamic sets cannot be edited
+        if (this.isDynamic) {
+            window.ui.showMessage('Dynamic sets cannot be edited');
+            return;
+        }
+        
         const card = this.getCurrentCard();
         if (!card) return;
 
