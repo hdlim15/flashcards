@@ -166,11 +166,7 @@ export class Gists {
             sets: safeData.sets.map((set) => ({
                 ...set,
                 name: (set.name || '').trim(),
-                cards: (Array.isArray(set.cards) ? set.cards : []).filter((card) => {
-                    const front = (card.front || '').trim();
-                    const back = (card.back || '').trim();
-                    return front.length > 0 && back.length > 0;
-                }).map((card) => ({
+                cards: (Array.isArray(set.cards) ? set.cards : []).map((card) => ({
                     ...card,
                     front: (card.front || '').trim(),
                     back: (card.back || '').trim()
